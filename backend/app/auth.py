@@ -1,4 +1,6 @@
+import jwt
 from datetime import datetime, timedelta, timezone
+from fastapi import Depends, HTTPException
 from jose import jwt
 from passlib.context import CryptContext
 from typing import Optional
@@ -8,15 +10,13 @@ from sqlalchemy.orm import Session
 from database import SessionLocal
 from exceptions import InvalidCredentialsException, UserAlreadyExistsException
 from schemas import UserCreate, UserLogin
+from config import SECRET_KEY, ALGORITHM, oauth2_scheme
 
 from models import User
 
-SECRET_KEY = "0eaiB/cyapHswSFl5fGES1Wi6W8tdNRwH2mOuoybMhA"
-ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 
 def get_db():
     db = SessionLocal()
