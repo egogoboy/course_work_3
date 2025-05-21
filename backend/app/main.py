@@ -1,8 +1,6 @@
 from fastapi import FastAPI
-from sqlalchemy import engine
-from database import Base
-from users import router as user_router
-from startup import init_db
+from routes.users import router as user_router
+from database.startup import init_db
 
 app = FastAPI()
 init_db()

@@ -1,18 +1,16 @@
 import jwt
 from datetime import datetime, timedelta, timezone
-from fastapi import Depends, HTTPException
 from jose import jwt
 from passlib.context import CryptContext
 from typing import Optional
 
 from sqlalchemy.orm import Session
 
-from database import SessionLocal
-from exceptions import InvalidCredentialsException, UserAlreadyExistsException
-from schemas import UserCreate, UserLogin
-from config import SECRET_KEY, ALGORITHM, oauth2_scheme
-
-from models import User
+from database.database import SessionLocal
+from utils.exceptions import InvalidCredentialsException, UserAlreadyExistsException
+from models.schemas import UserCreate, UserLogin
+from models.models import User
+from sequrity.config import SECRET_KEY, ALGORITHM
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 

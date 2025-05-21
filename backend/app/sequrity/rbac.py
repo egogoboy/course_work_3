@@ -2,10 +2,10 @@ from functools import wraps
 from fastapi import Depends
 from jose import JWTError, jwt
 
-from models import User
-from database import SessionLocal
+from models.models import User
+from database.database import SessionLocal
 from config import SECRET_KEY, ALGORITHM, oauth2_scheme 
-from exceptions import AuthenticationRequiredException, NotEnoughRightsException
+from utils.exceptions import AuthenticationRequiredException, NotEnoughRightsException
 
 async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
     credentials_exception = AuthenticationRequiredException()

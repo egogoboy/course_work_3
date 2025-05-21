@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from rbac import role_checker
-from schemas import UserCreate, UserLogin, TokenResponse
-from auth import authenticate_user, register_user, get_db
+from sequrity.rbac import role_checker
+from sequrity.auth import authenticate_user, register_user, get_db
+from models.schemas import UserCreate, UserLogin, TokenResponse
 
 router = APIRouter()
 
