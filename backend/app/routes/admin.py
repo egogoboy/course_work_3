@@ -1,13 +1,15 @@
-from typing import Union
+from typing import List, Union
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from crud.group import create_group, get_all_groups
 from models.schemas.schemas import TokenResponse
 from models.schemas.common import APIResponse
+from models.schemas.user import UserCreate, UserOut
+from models.schemas.group import GroupCreate, GroupOut
 from utils.exceptions import UserNotFoundException
 from crud.crud import get_user_by_id
 from models.db_models.user import User
-from models.schemas.user import UserCreate, UserOut
 from sequrity.auth import get_db, create_user
 from sequrity.rbac import admin_only
 
@@ -56,3 +58,19 @@ def delete_user(user_id: int,
 async def register(user: UserCreate, 
                    db: Session = Depends(get_db)):
     return APIResponse(data=create_user(user, db))
+
+
+@router.post("/create_group",
+             response_model=APIResponse[GroupOut],
+             dependencies=[Depends(admin_only)])
+async def create_group_endpoint(group: GroupCreate,
+                       db: Session = Depends(get_db)):
+    created_group = create_group(group, db)
+    return APIResponse(data=created_group)
+
+
+@router.get("/groups",
+            response_model=APIResponse[List[GroupOut]],
+            dependencies=[Depends(admin_only)])
+async def get_all_groups_endpoint(db: Session = Depends(get_db)):
+    return APIResponse(data=get_all_groups(db))
