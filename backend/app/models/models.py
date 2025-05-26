@@ -5,15 +5,6 @@ from sqlalchemy import Column, Integer, String
 from database.database import Base
 
 
-class User(Base):
-    __tablename__ = "users"
-
-    id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, index=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
-    role = Column(String, nullable=False)
-
-
 class Role(str, Enum):
     student = "student"
     teacher = "teacher"
@@ -44,12 +35,6 @@ class UserBase(ABC):
     @abstractmethod
     def get_permissions(self) -> list[Permissions]:
         pass
-
-
-class Student(UserBase):
-    def get_permissions(self):
-        return [Permissions.view_profile, 
-                Permissions.view_exams]
 
 
 class Teacher(UserBase):

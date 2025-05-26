@@ -8,8 +8,8 @@ from sqlalchemy.orm import Session
 
 from database.database import SessionLocal
 from utils.exceptions import InvalidCredentialsException, UserAlreadyExistsException
-from models.schemas import UserCreate, UserLogin
-from models.models import User
+from models.schemas.user import UserCreate, UserLogin
+from models.db_models.user import User
 from sequrity.config import SECRET_KEY, ALGORITHM
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
@@ -40,7 +40,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
-def register_user(user_data: UserCreate, db: Session):
+def create_user(user_data: UserCreate, db: Session):
     existing_user = db.query(User).filter(User.username == user_data.username).first()
     if existing_user:
         raise UserAlreadyExistsException
@@ -55,6 +55,8 @@ def register_user(user_data: UserCreate, db: Session):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
+
+    db.commit()
 
     token = create_access_token(data={"sub": new_user.username, "role": new_user.role})
     return {

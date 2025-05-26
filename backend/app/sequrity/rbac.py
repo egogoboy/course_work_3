@@ -2,12 +2,13 @@ from functools import wraps
 from fastapi import Depends
 from jose import JWTError, jwt
 
-from models.models import User
+from models.db_models.user import User
+from models.schemas.user import UserOut
 from database.database import SessionLocal
-from config import SECRET_KEY, ALGORITHM, oauth2_scheme 
+from sequrity.config import SECRET_KEY, ALGORITHM, oauth2_scheme 
 from utils.exceptions import AuthenticationRequiredException, NotEnoughRightsException
 
-async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
+async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserOut:
     credentials_exception = AuthenticationRequiredException()
 
     try:
@@ -26,6 +27,15 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
     return user
 
 
+class RoleChecker:
+    def __init__(self, allowed_roles: list[str]):
+        self.allowed_roles = allowed_roles
+
+    async def __call__(self, user: User = Depends(get_current_user)):
+        if user.role not in self.allowed_roles:
+            raise NotEnoughRightsException
+
+
 def role_checker(roles: list[str]):
     def decorator(func):
         @wraps(func)
@@ -35,3 +45,7 @@ def role_checker(roles: list[str]):
             return await func(*args, user=user, **kwargs)
         return wrapper
     return decorator
+
+
+admin_only = RoleChecker(["admin"])
+teacher_only = RoleChecker(['teacher'])
