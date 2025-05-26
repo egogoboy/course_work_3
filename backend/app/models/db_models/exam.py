@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
+from models.db_models.exam_group import exam_group
 from database.database import Base
 
 class Exam(Base):
@@ -14,3 +15,5 @@ class Exam(Base):
     subject = relationship("Subject", back_populates="exams")
     user = relationship("User", back_populates="exams")
     tasks = relationship("Task", back_populates="exam")
+
+    groups = relationship("Group", secondary=exam_group, back_populates="exams")
