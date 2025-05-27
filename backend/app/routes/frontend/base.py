@@ -1,11 +1,8 @@
 from fastapi import APIRouter, Depends, Request
 from starlette.responses import HTMLResponse
 
-from fastapi.templating import Jinja2Templates
+from core.templates import templates
 
-from sequrity.rbac import admin_only
-
-templates = Jinja2Templates(directory="templates")
 
 router = APIRouter()
 
