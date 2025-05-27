@@ -1,4 +1,7 @@
+import os
 from fastapi import APIRouter, FastAPI
+
+from pathlib import Path
 
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -10,9 +13,19 @@ from routes.frontend.router import router as frontend_router
 
 app = FastAPI()
 
-# app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
+BASE_DIR = Path(__file__).resolve().parent.parent.parent  # exam-system/
+FRONTEND_DIR = BASE_DIR / "frontend"
 
+print("BASE_DIR:", BASE_DIR)
+print("FRONTEND_DIR:", FRONTEND_DIR)
+print("Templates dir:", FRONTEND_DIR / "templates")
+print("Static dir:", FRONTEND_DIR / "static")
+print("Templates dir exists?", (FRONTEND_DIR / "templates").exists())
+print("Static dir exists?", (FRONTEND_DIR / "static").exists())
+
+
+templates = Jinja2Templates(directory=os.path.join(FRONTEND_DIR / "templates"))
+app.mount("/static", StaticFiles(directory=os.path.join(FRONTEND_DIR / "static")), name="static")
 
 init_db()
 app.include_router(api_router)
