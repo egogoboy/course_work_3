@@ -1,17 +1,14 @@
-from typing import List
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from models.db_models.exam import Exam
 from models.schemas.exam import ExamOut
-from models.schemas.common import APIResponse
 from sequrity.rbac import get_current_user
 from sequrity.auth import get_db
 
 router = APIRouter()
 
 
-@router.get('/',
-            response_model=APIResponse[List[ExamOut]])
+@router.get('/')
 async def get_exams(db: Session = Depends(get_db),
                     current_user = Depends(get_current_user)):
     exams = []
@@ -22,4 +19,4 @@ async def get_exams(db: Session = Depends(get_db),
     elif current_user.role == "admin":
         exams = db.query(Exam).all()
 
-    return APIResponse(data=[ExamOut.model_validate(exam) for exam in exams])
+    return (ExamOut.model_validate(exam) for exam in exams)
