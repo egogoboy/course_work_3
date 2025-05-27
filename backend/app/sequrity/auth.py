@@ -7,7 +7,8 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from database.database import SessionLocal
-from utils.exceptions import InvalidCredentialsException, UserAlreadyExistsException
+from utils.exceptions.auth import InvalidCredentialsException
+from utils.exceptions.user import UserAlreadyExistsException
 from models.schemas.user import UserCreate, UserLogin
 from models.db_models.user import User
 from sequrity.config import SECRET_KEY, ALGORITHM

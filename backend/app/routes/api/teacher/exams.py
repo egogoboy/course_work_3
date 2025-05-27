@@ -4,7 +4,7 @@ from models.schemas.exam import ExamOut, ExamCreate
 from models.schemas.common import APIResponse
 from sequrity.rbac import get_current_user, teacher_only
 from sequrity.auth import get_db
-from crud.exam.exam import create_exam
+from crud.exam import create_exam
 
 router = APIRouter()
 

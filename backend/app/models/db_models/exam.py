@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, DateTime, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from database.database import Base
 
@@ -11,6 +11,11 @@ class Exam(Base):
     subject_id = Column(Integer, ForeignKey("subjects.id"))
     user_id = Column(Integer, ForeignKey("users.id"))
     group_id = Column(Integer, ForeignKey("groups.id"))
+
+    start_time = Column(DateTime, nullable=False)
+    end_time = Column(DateTime, nullable=False)
+
+    status = Column(String, default="not started") # not_started in_progress finished
 
     subject = relationship("Subject", back_populates="exams")
     user = relationship("User", back_populates="exams")

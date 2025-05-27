@@ -6,7 +6,8 @@ from models.db_models.user import User
 from models.schemas.user import UserOut
 from database.database import SessionLocal
 from sequrity.config import SECRET_KEY, ALGORITHM, oauth2_scheme 
-from utils.exceptions import AuthenticationRequiredException, NotEnoughRightsException
+from utils.exceptions.auth import AuthenticationRequiredException
+from utils.exceptions.rbac import NotEnoughRightsException
 
 async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserOut:
     credentials_exception = AuthenticationRequiredException()
