@@ -1,6 +1,9 @@
 from functools import wraps
-from fastapi import Depends
+from fastapi import Depends, Request
+from fastapi.responses import RedirectResponse
 from jose import JWTError, jwt
+
+from starlette.status import HTTP_303_SEE_OTHER
 
 from models.db_models.user import User
 from models.schemas.user import UserOut
