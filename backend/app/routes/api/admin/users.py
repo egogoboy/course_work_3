@@ -2,11 +2,10 @@ from typing import List, Union
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from crud.group import create_group, get_all_groups
+from crud.user import update_user
 from models.schemas.schemas import TokenResponse
 from models.schemas.common import APIResponse
-from models.schemas.user import UserCreate, UserOut
-from models.schemas.group import GroupCreate, GroupOut
+from models.schemas.user import UserCreate, UserOut, UserUpdate
 from utils.exceptions import UserNotFoundException
 from crud.crud import get_user_by_id
 from models.db_models.user import User
@@ -20,7 +19,7 @@ router = APIRouter()
 @router.get("/users", 
             response_model=APIResponse[Union[list[UserOut], None]], 
             dependencies=[Depends(admin_only)])
-async def get_all_users(db: Session = Depends(get_db)):
+async def get_all_users_endpoint(db: Session = Depends(get_db)):
     users = db.query(User).all()
     return APIResponse(data=[UserOut.model_validate(user) for user in users])
 
@@ -28,7 +27,7 @@ async def get_all_users(db: Session = Depends(get_db)):
 @router.get("/user/{user_id}", 
             response_model=APIResponse[Union[UserOut, None]], 
             dependencies=[Depends((admin_only))])
-async def get_user(user_id: int, 
+async def get_user_endpoint(user_id: int, 
                    db: Session = Depends(get_db)):
     user = get_user_by_id(user_id, db)
 
@@ -41,7 +40,7 @@ async def get_user(user_id: int,
 @router.post("/delete_user/{user_id}", 
              response_model=APIResponse[Union[UserOut, None]], 
              dependencies=[Depends(admin_only)])
-def delete_user(user_id: int, 
+def delete_user_endpoint(user_id: int, 
                 db: Session = Depends(get_db)):
     user = get_user_by_id(user_id, db)
     if user is None:
@@ -55,15 +54,20 @@ def delete_user(user_id: int,
 @router.post("/register", 
              response_model=APIResponse[Union[TokenResponse]],
              dependencies=[Depends(admin_only)])
-async def register(user: UserCreate, 
+async def register_user_endpoint(user: UserCreate, 
                    db: Session = Depends(get_db)):
     return APIResponse(data=create_user(user, db))
 
 
-@router.post("/create_group",
-             response_model=APIResponse[GroupOut],
+@router.put("/edit/{user_id}",
+             response_model=APIResponse[Union[UserOut, None]],
              dependencies=[Depends(admin_only)])
-async def create_group_endpoint(group: GroupCreate,
-                       db: Session = Depends(get_db)):
-    created_group = create_group(group, db)
-    return APIResponse(data=created_group)
+async def edit_user_endpoint(user_id: int,
+                             new_user_data: UserUpdate,
+                             db: Session = Depends(get_db)):
+    updated_user = update_user(user_id, new_user_data, db)
+
+    if updated_user is None:
+        raise UserNotFoundException
+
+    return APIResponse(data=UserOut.model_validate(updated_user, from_attributes=True))

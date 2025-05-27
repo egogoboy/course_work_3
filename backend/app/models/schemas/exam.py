@@ -1,4 +1,5 @@
 from datetime import time
+from typing import Optional
 from pydantic import BaseModel, ConfigDict
 
 class ExamBase(BaseModel):
@@ -16,5 +17,6 @@ class ExamCreate(ExamBase):
 class ExamOut(ExamBase):
     id: int
     user_id: int
+    group_id: Optional[int] = None
 
     model_config = ConfigDict(from_attributes=True)

@@ -6,6 +6,7 @@ from models.schemas.common import APIResponse
 from models.schemas.user import UserLogin
 from models.schemas.schemas import TokenResponse
 
+
 router = APIRouter()
 
 

@@ -12,7 +12,7 @@ from sequrity.rbac import admin_only
 router = APIRouter()
 
 
-@router.post("/create_group",
+@router.post("/create",
              response_model=APIResponse[GroupOut],
              dependencies=[Depends(admin_only)])
 async def create_group_endpoint(group: GroupCreate,

@@ -12,7 +12,8 @@ async def create_exam(exam_data: ExamCreate,
         title=exam_data.title,
         body=exam_data.body,
         subject_id=exam_data.subject_id,
-        user_id=user_id
+        user_id=user_id,
+        group_id=exam_data.group_id
     )
 
     db.add(new_exam)
