@@ -21,7 +21,7 @@ async def create_group_endpoint(group: GroupCreate,
     return APIResponse(data=created_group)
 
 
-@router.get("/groups",
+@router.get("/",
             response_model=APIResponse[List[GroupOut]],
             dependencies=[Depends(admin_only)])
 async def get_all_groups_endpoint(db: Session = Depends(get_db)):
