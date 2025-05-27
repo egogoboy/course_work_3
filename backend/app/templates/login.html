@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login</title>
+</head>
+<body>
+  <h2>Login</h2>
+  <form id="login-form">
+    <input type="text" id="username" placeholder="Username" required><br>
+    <input type="password" id="password" placeholder="Password" required><br>
+    <button type="submit">Login</button>
+  </form>
+
+  <script>
+      const form = document.getElementById("login-form");
+
+      form.addEventListener("submit", async (event) => {
+          event.preventDefault();
+
+          const username = document.getElementById("username").value;
+          const password = document.getElementById("password").value;
+
+          const response = await fetch("/api/common/login", {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json"
+              },
+              body: JSON.stringify({ username, password })
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+              localStorage.setItem("access_token", data.data.access_token);
+
+              // Получаем данные о пользователе с помощью токена
+              const userResponse = await fetch("/api/common/me", {
+                  headers: {
+                      "Authorization": "Bearer " + data.data.access_token
+                  }
+              });
+
+              const user = await userResponse.json();
+
+              if (user.data.role === "admin") {
+                  window.location.href = "/admin";
+              } else {
+                  window.location.href = "/home";
+              }
+
+          } else {
+              alert("Ошибка: " + (data.detail || "не удалось войти"));
+          }
+      });
+  </script>
+</body>
+</html>

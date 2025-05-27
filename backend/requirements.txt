@@ -1,0 +1,7 @@
+fastapi[all]
+uvicorn[standart]
+python-jose[cryptography]
+passlib[bcrypt]
+sqlalchemy
+pydantic
+jwt==1.7.1

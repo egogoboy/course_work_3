@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Создание группы</title>
+</head>
+<body>
+    <h2>Создание группы</h2>
+    <form id="create-group-form">
+        <input name="name" id="group-name" placeholder="Название группы" required>
+        <button type="submit">Создать</button>
+    </form>
+
+    <script>
+        const form = document.getElementById("create-group-form");
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const name = document.getElementById("group-name").value;
+            const token = localStorage.getItem("access_token");
+
+            const response = await fetch("/api/admin/groups/create", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify({ name })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert("Группа успешно создана!");
+                window.location.href = "/admin/groups";  // редирект на список
+            } else {
+                alert("Ошибка: " + (data.detail || "не удалось создать группу"));
+            }
+        });
+    </script>
+</body>
+</html>

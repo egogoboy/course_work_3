@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Список экзаменов</title>
+</head>
+<body>
+    <h1>Экзамены</h1>
+    <div id="exams"></div>
+
+    <script>
+        const token = localStorage.getItem("access_token");
+
+        fetch("/api/common/exams", {
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById("exams");
+            if (data.data.length === 0) {
+                container.innerText = "Экзамены не найдены";
+                return;
+            }
+
+            const list = document.createElement("ul");
+            data.data.forEach(exam => {
+                const li = document.createElement("li");
+                li.innerText = exam.title + " — " + exam.body;
+                list.appendChild(li);
+            });
+            container.appendChild(list);
+        })
+        .catch(err => {
+            console.error("Ошибка получения экзаменов:", err);
+        });
+    </script>
+</body>
+</html>

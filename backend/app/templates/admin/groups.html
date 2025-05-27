@@ -1,0 +1,63 @@
+<!-- templates/admin/groups.html -->
+{% extends "admin/base.html" %}
+
+{% block content %}
+<h2>Группы</h2>
+<button onclick="location.href='/admin/groups/create'">Создать новую группу</button>
+<div id="group-list">Загрузка...</div>
+
+<script>
+    const token = localStorage.getItem("access_token");
+
+    function loadGroups() {
+        fetch("/api/admin/groups", {
+            headers: {
+                Authorization: "Bearer " + token
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById("group-list");
+            container.innerHTML = "";
+
+            if (data.data.length === 0) {
+                container.innerText = "Нет групп.";
+                return;
+            }
+
+            const table = document.createElement("table");
+            data.data.forEach(group => {
+                const row = document.createElement("tr");
+
+                const tdInfo = document.createElement("td");
+                tdInfo.innerText = group.name;
+                row.appendChild(tdInfo);
+
+                const tdEdit = document.createElement("td");
+                const editBtn = document.createElement("button");
+                editBtn.innerText = "Редактировать";
+                editBtn.onclick = () => location.href = `/admin/groups/${group.id}/edit`;
+                tdEdit.appendChild(editBtn);
+                row.appendChild(tdEdit);
+
+                const tdDelete = document.createElement("td");
+                const delBtn = document.createElement("button");
+                delBtn.innerText = "Удалить";
+                delBtn.onclick = () => {
+                    fetch(`/api/groups/${group.id}`, {
+                        method: "DELETE",
+                        headers: { Authorization: "Bearer " + token }
+                    }).then(() => loadGroups());
+                };
+                tdDelete.appendChild(delBtn);
+                row.appendChild(tdDelete);
+
+                table.appendChild(row);
+            });
+            container.appendChild(table);
+        });
+    }
+
+    loadGroups();
+</script>
+{% endblock %}

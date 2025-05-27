@@ -1,0 +1,57 @@
+<!-- templates/admin/users.html -->
+{% extends "admin/base.html" %}
+
+{% block content %}
+<h2>Пользователи</h2>
+<div id="user-list">Загрузка...</div>
+
+<script>
+    const token = localStorage.getItem("access_token");
+
+    function loadUsers() {
+        fetch("/api/admin/users/users", {
+            headers: {
+                Authorization: "Bearer " + token
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById("user-list");
+            container.innerHTML = "";
+
+            if (data.data.length === 0) {
+                container.innerText = "Нет пользователей.";
+                return;
+            }
+
+            const table = document.createElement("table");
+            data.data.forEach(user => {
+                const row = document.createElement("tr");
+
+                const tdInfo = document.createElement("td");
+                tdInfo.innerText = user.username + " (" + user.role + ")";
+                row.appendChild(tdInfo);
+
+                const tdDelete = document.createElement("td");
+                const btn = document.createElement("button");
+                btn.innerText = "Удалить";
+                btn.onclick = () => {
+                    fetch(`/api/users/${user.id}`, {
+                        method: "DELETE",
+                        headers: {
+                            Authorization: "Bearer " + token
+                        }
+                    }).then(() => loadUsers());
+                };
+                tdDelete.appendChild(btn);
+                row.appendChild(tdDelete);
+
+                table.appendChild(row);
+            });
+            container.appendChild(table);
+        });
+    }
+
+    loadUsers();
+</script>
+{% endblock %}
