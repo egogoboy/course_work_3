@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Дашборд студента</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+    <div class="navbar">
+        <div class="navbar-item" onclick="goToProfile()">Профиль</div>
+
+        <div class="navbar-item">
+            Экзамены
+            <div class="submenu">
+                <a href="#" onclick="showExams('all')">Все</a>
+                <a href="#" onclick="showExams('completed')">Прошедшие</a>
+                <a href="#" onclick="showExams('current')">Текущие</a>
+                <a href="#" onclick="showExams('upcoming')">Запланированные</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="content" id="content">
+        <h2>Добро пожаловать в дашборд студента</h2>
+        <p>Выберите пункт меню для начала работы.</p>
+    </div>
+
+    <script>
+        function goToProfile() {
+            document.getElementById("content").innerHTML = `
+                <h2>Профиль</h2>
+                <p>Здесь будет отображаться информация о вашем профиле.</p>
+            `;
+        }
+
+        function showExams(type) {
+            let title = "";
+            switch(type) {
+                case "all":
+                    title = "Все экзамены";
+                    break;
+                case "completed":
+                    title = "Прошедшие экзамены";
+                    break;
+                case "current":
+                    title = "Текущие экзамены";
+                    break;
+                case "upcoming":
+                    title = "Запланированные экзамены";
+                    break;
+            }
+
+            document.getElementById("content").innerHTML = `
+                <h2>${title}</h2>
+                <p>Здесь будет отображаться список экзаменов категории "${title}".</p>
+            `;
+        }
+    </script>
+
+</body>
+</html>

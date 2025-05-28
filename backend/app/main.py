@@ -1,5 +1,5 @@
 import os
-from fastapi import APIRouter, FastAPI
+from fastapi import FastAPI
 
 from pathlib import Path
 

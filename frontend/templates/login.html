@@ -47,8 +47,8 @@
 
               if (user.role === "admin") {
                   window.location.href = "/admin";
-              } else {
-                  window.location.href = "/home";
+              } else if (user.role === "student") {
+                  window.location.href = "/student/home";
               }
 
           } else {
