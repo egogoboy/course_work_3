@@ -24,18 +24,15 @@
 
             const response = await fetch("/api/admin/exams/create", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": "Bearer " + token
-                },
+                credentials: "include",
                 body: JSON.stringify({ name })
             });
 
             const data = await response.json();
 
             if (response.ok) {
-                alert("Экзамен успешно создана!");
-                window.location.href = "/admin/groups";  // редирект на список
+                alert("Экзамен успешно создан!");
+                window.location.href = "/admin/exams";  // редирект на список
             } else {
                 alert("Ошибка: " + (data.detail || "не удалось создать экзамен"));
             }
