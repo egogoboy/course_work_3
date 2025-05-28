@@ -3,27 +3,27 @@
 <head>
     <link rel="stylesheet" href="/static/css/style.css">
     <meta charset="UTF-8">
-    <title>Создание группы</title>
+    <title>Создание предмета</title>
 </head>
 <body>
     <button id="back-button">Назад</button>
 
-    <h2>Создание группы</h2>
-    <form id="create-group-form">
-        <input name="name" id="group-name" placeholder="Название группы" required>
+    <h2>Создание предмета</h2>
+    <form id="create-subject-form">
+        <input name="name" id="subject-name" placeholder="Название предмета" required>
         <button type="submit">Создать</button>
     </form>
 
     <script>
-        const form = document.getElementById("create-group-form");
+        const form = document.getElementById("create-subject-form");
 
         form.addEventListener("submit", async (event) => {
             event.preventDefault();
 
-            const name = document.getElementById("group-name").value;
+            const name = document.getElementById("subject-name").value;
             const token = localStorage.getItem("access_token");
 
-            const response = await fetch("/api/admin/groups/create", {
+            const response = await fetch("/api/admin/subjects/create", {
                 method: "POST",
                 credentials: "include",
                 headers: {
@@ -35,10 +35,10 @@
             const data = await response.json();
 
             if (response.ok) {
-                alert("Группа успешно создана!");
-                window.location.href = "/admin/groups";  // редирект на список
+                alert("Предмет успешно создан!");
+                window.location.href = "/admin/subjects";  // редирект на список
             } else {
-                alert("Ошибка: " + (data.detail || "не удалось создать группу"));
+                alert("Ошибка: " + (data.detail || "не удалось создать предмет"));
             }
         });
 
@@ -46,7 +46,7 @@
             if (document.referrer) {
                 window.location.href = document.referrer;
             } else {
-                window.location.href = "/admin/groups";  // fallback
+                window.location.href = "/admin/subjects";  // fallback
             }
         });
     </script>

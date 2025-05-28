@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <meta charset="UTF-8">
+    <title>Редактирование предмета</title>
+</head>
+<body>
+    <button id="back-button">Назад</button>
+
+    <h2>Редактирование предмета</h2>
+    <form id="edit-subject-form">
+        <input name="name" id="subject-name" placeholder="Название предмета" required>
+        <button type="submit">Изменить</button>
+    </form>
+
+    <p id="message"></p>
+
+    <script>
+        const subjectId = {{ subject_id }};
+        const form = document.getElementById("edit-subject-form");
+        const nameInput = document.getElementById("subject-name");
+
+        // Загрузка текущих данных
+        fetch(`/api/admin/subjects/${subjectId}`, {
+            method: "GET",
+            credentials: "include"
+        })
+        .then(res => res.json())
+        .then(data => {
+            nameInput.value = data.name;
+        });
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const confirmed = confirm("Вы точно хотите применить изменения?");
+            if (!confirmed) return;
+
+            const payload = {
+                name: nameInput.value
+            };
+
+            const response = await fetch(`/api/admin/subjects/${subjectId}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                credentials: "include",
+                body: JSON.stringify(payload)
+            });
+
+            const message = document.getElementById("message");
+
+            if (response.ok) {
+                message.innerText = "Изменения сохранены.";
+                message.style.color = "green";
+            } else {
+                const error = await response.json();
+                message.innerText = error.detail || "Ошибка при сохранении";
+                message.style.color = "red";
+            }
+
+            function delay(time) {
+              return new Promise(resolve => setTimeout(resolve, time));
+            }
+
+            delay(1000).then(() => window.location.href = document.referrer)
+        });
+
+        document.getElementById("back-button").addEventListener("click", () => {
+            if (document.referrer) {
+                window.location.href = document.referrer;
+            } else {
+                window.location.href = "/admin/subjects";  // fallback
+            }
+        });
+
+    </script>
+
+</body>
+</html>

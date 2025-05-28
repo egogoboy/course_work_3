@@ -1,39 +1,39 @@
 {% extends "admin/base.html" %}
 
 {% block content %}
-<h2>Группы</h2>
-<button onclick="location.href='/admin/groups/create'">Создать новую группу</button>
-<div id="group-list">Загрузка...</div>
+<h2>Предметы</h2>
+<button onclick="location.href='/admin/subjects/create'">Создать новый предмет</button>
+<div id="subject-list">Загрузка...</div>
 
 <script>
     const token = localStorage.getItem("access_token");
 
     function loadGroups() {
-        fetch("/api/admin/groups", {
+        fetch("/api/admin/subjects", {
             credentials: "include"
         })
         .then(res => res.json())
         .then(data => {
-            const container = document.getElementById("group-list");
+            const container = document.getElementById("subject-list");
             container.innerHTML = "";
 
             if (data.length === 0) {
-                container.innerText = "Нет групп.";
+                container.innerText = "Нет предметов.";
                 return;
             }
 
             const table = document.createElement("table");
-            data.forEach(group => {
+            data.forEach(subject => {
                 const row = document.createElement("tr");
 
                 const tdInfo = document.createElement("td");
-                tdInfo.innerText = group.name;
+                tdInfo.innerText = subject.name;
                 row.appendChild(tdInfo);
 
                 const tdEdit = document.createElement("td");
                 const editBtn = document.createElement("button");
                 editBtn.innerText = "Редактировать";
-                editBtn.onclick = () => location.href = `/admin/groups/edit/${group.id}`;
+                editBtn.onclick = () => location.href = `/admin/subjects/edit/${subject.id}`;
                 tdEdit.appendChild(editBtn);
                 row.appendChild(tdEdit);
 
@@ -41,7 +41,7 @@
                 const delBtn = document.createElement("button");
                 delBtn.innerText = "Удалить";
                 delBtn.onclick = () => {
-                    fetch(`/api/admin/groups/${group.id}`, {
+                    fetch(`/api/admin/subjects/${subject.id}`, {
                         method: "DELETE",
                         credentials: "include"
                     }).then(() => loadGroups());
