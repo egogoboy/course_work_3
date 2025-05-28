@@ -10,9 +10,9 @@
     <div class="navbar">
         <div class="navbar-item" onclick="goToProfile()">Профиль</div>
 
-        <div class="navbar-item">
+        <div class="navbar-item" id="exam-menu-toggle">
             Экзамены
-            <div class="submenu">
+            <div class="submenu" id="exam-submenu">
                 <a href="#" onclick="showExams('all')">Все</a>
                 <a href="#" onclick="showExams('completed')">Прошедшие</a>
                 <a href="#" onclick="showExams('current')">Текущие</a>
@@ -28,6 +28,7 @@
 
     <script>
         function goToProfile() {
+            closeSubmenu();
             document.getElementById("content").innerHTML = `
                 <h2>Профиль</h2>
                 <p>Здесь будет отображаться информация о вашем профиле.</p>
@@ -35,20 +36,14 @@
         }
 
         function showExams(type) {
+            closeSubmenu();
+
             let title = "";
             switch(type) {
-                case "all":
-                    title = "Все экзамены";
-                    break;
-                case "completed":
-                    title = "Прошедшие экзамены";
-                    break;
-                case "current":
-                    title = "Текущие экзамены";
-                    break;
-                case "upcoming":
-                    title = "Запланированные экзамены";
-                    break;
+                case "all": title = "Все экзамены"; break;
+                case "completed": title = "Прошедшие экзамены"; break;
+                case "current": title = "Текущие экзамены"; break;
+                case "upcoming": title = "Запланированные экзамены"; break;
             }
 
             document.getElementById("content").innerHTML = `
@@ -56,6 +51,26 @@
                 <p>Здесь будет отображаться список экзаменов категории "${title}".</p>
             `;
         }
+
+        // Выпадающее меню
+        const examMenuToggle = document.getElementById("exam-menu-toggle");
+        const examSubmenu = document.getElementById("exam-submenu");
+
+        examMenuToggle.addEventListener("click", (e) => {
+            e.stopPropagation(); // Чтобы не закрывалось сразу
+            examSubmenu.style.display = examSubmenu.style.display === "block" ? "none" : "block";
+        });
+
+        function closeSubmenu() {
+            examSubmenu.style.display = "none";
+        }
+
+        // Закрывать подменю при клике вне его
+        document.addEventListener("click", (e) => {
+            if (!examMenuToggle.contains(e.target)) {
+                closeSubmenu();
+            }
+        });
     </script>
 
 </body>

@@ -76,3 +76,44 @@ th, td {
 tr:hover {
     background-color: #f1f1f1;
 }
+
+.navbar {
+    display: flex;
+    background-color: #333;
+    color: white;
+    padding: 10px;
+    align-items: center;
+}
+
+.navbar-item {
+    position: relative;
+    margin-right: 20px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.submenu {
+    display: none;
+    position: absolute;
+    top: 35px;
+    left: 0;
+    background-color: #444;
+    padding: 10px;
+    border-radius: 4px;
+    z-index: 100;
+}
+
+.submenu a {
+    display: block;
+    padding: 5px 10px;
+    color: white;
+    text-decoration: none;
+}
+
+.submenu a:hover {
+    background-color: #555;
+}
+
+.content {
+    padding: 20px;
+}

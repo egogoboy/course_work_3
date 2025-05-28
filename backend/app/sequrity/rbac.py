@@ -66,5 +66,6 @@ def role_checker(roles: list[str]):
     return decorator
 
 
-admin_only = RoleChecker(["admin"])
+admin_only = RoleChecker(['admin'])
 teacher_only = RoleChecker(['teacher'])
+student_only = RoleChecker(['student'])

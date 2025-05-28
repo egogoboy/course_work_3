@@ -7,6 +7,6 @@ from core.templates import templates
 router = APIRouter()
 
 
-@router.get("/", response_class=HTMLResponse)
+@router.get("/exams", response_class=HTMLResponse)
 async def exams_page(request: Request):
-    return templates.TemplateResponse("exams.html", {"request": request})
+    return templates.TemplateResponse("admin/exam/exams.html", {"request": request})
