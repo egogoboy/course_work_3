@@ -1,17 +1,13 @@
 from functools import wraps
 from typing import Optional
 from fastapi import Depends, Request
-from fastapi.responses import RedirectResponse
 from jose import JWTError, jwt
 
 from sqlalchemy.orm import Session
-from starlette.status import HTTP_303_SEE_OTHER
 
 from sequrity.auth import get_db
 from models.db_models.user import User
-from models.schemas.user import UserOut
-from database.database import SessionLocal
-from sequrity.config import SECRET_KEY, ALGORITHM, oauth2_scheme 
+from sequrity.config import SECRET_KEY, ALGORITHM
 from utils.exceptions.auth import AuthenticationRequiredException
 from utils.exceptions.rbac import NotEnoughRightsException
 
