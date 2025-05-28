@@ -11,22 +11,20 @@
 
     function loadExams() {
         fetch("/api/admin/exams", {
-            headers: {
-                Authorization: "Bearer " + token
-            }
+            credentials: "include"
         })
         .then(res => res.json())
         .then(data => {
             const container = document.getElementById("exam-list");
             container.innerHTML = "";
 
-            if (data.data.length === 0) {
+            if (data.length === 0) {
                 container.innerText = "Нет экзаменов.";
                 return;
             }
 
             const table = document.createElement("table");
-            data.data.forEach(exam => {
+            data.forEach(exam => {
                 const row = document.createElement("tr");
 
                 const tdInfo = document.createElement("td");

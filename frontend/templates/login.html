@@ -27,30 +27,32 @@
               headers: {
                   "Content-Type": "application/json"
               },
-              body: JSON.stringify({ username, password })
+              body: JSON.stringify({ username, password }),
+              credentials: "include"  // ВАЖНО: чтобы браузер сохранил и отправил cookie
           });
 
-          const data = await response.json();
-
           if (response.ok) {
-              localStorage.setItem("access_token", data.data.access_token);
-
-              // Получаем данные о пользователе с помощью токена
+              alert("Логин прошёл успешно, попытка получить данные пользователя")
+              // Теперь запросим данные пользователя, токен уже в cookie, не нужен заголовок
               const userResponse = await fetch("/api/common/me", {
-                  headers: {
-                      "Authorization": "Bearer " + data.data.access_token
-                  }
+                  credentials: "include"  // Отправляем куки с запросом
               });
+
+              if (!userResponse.ok) {
+                  alert("Ошибка при получении данных пользователя");
+                  return;
+              }
 
               const user = await userResponse.json();
 
-              if (user.data.role === "admin") {
+              if (user.role === "admin") {
                   window.location.href = "/admin";
               } else {
                   window.location.href = "/home";
               }
 
           } else {
+              const data = await response.json();
               alert("Ошибка: " + (data.detail || "не удалось войти"));
           }
       });

@@ -70,8 +70,8 @@ def create_user(user_data: UserCreate, db: Session):
 
 def authenticate_user(user_data: UserLogin, db: Session):
     user = db.query(User).filter(User.username == user_data.username).first()
-    
 
+    print(user.username)
     if not user or not verify_password(user_data.password, user.hashed_password):
         raise InvalidCredentialsException
 

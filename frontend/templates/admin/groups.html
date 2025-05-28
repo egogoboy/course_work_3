@@ -11,22 +11,20 @@
 
     function loadGroups() {
         fetch("/api/admin/groups", {
-            headers: {
-                Authorization: "Bearer " + token
-            }
+            credentials: "include"
         })
         .then(res => res.json())
         .then(data => {
             const container = document.getElementById("group-list");
             container.innerHTML = "";
 
-            if (data.data.length === 0) {
+            if (data.length === 0) {
                 container.innerText = "Нет групп.";
                 return;
             }
 
             const table = document.createElement("table");
-            data.data.forEach(group => {
+            data.forEach(group => {
                 const row = document.createElement("tr");
 
                 const tdInfo = document.createElement("td");
