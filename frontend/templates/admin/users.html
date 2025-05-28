@@ -2,13 +2,14 @@
 
 {% block content %}
 <h2>Пользователи</h2>
+<button onclick="location.href='/admin/users/create'">Создать нового пользователя</button>
 <div id="user-list">Загрузка...</div>
 
 <script>
     const token = localStorage.getItem("access_token");
 
     function loadUsers() {
-        fetch("/api/admin/users/users", {
+        fetch("/api/admin/users", {
             credentials: "include"
         })
         .then(res => res.json())
@@ -27,13 +28,26 @@
 
                 const tdInfo = document.createElement("td");
                 tdInfo.innerText = user.username + " (" + user.role + ")";
+
                 row.appendChild(tdInfo);
+
+                if (user.role == "student") {
+                    tdInfo.InnerText = "Group: " + user.group_id;
+                }
+                row.appendChild(tdInfo)
+
+                const tdEdit = document.createElement("td");
+                const editBtn = document.createElement("button");
+                editBtn.innerText = "Редактировать";
+                editBtn.onclick = () => location.href = `/admin/users/edit/${user.id}`;
+                tdEdit.appendChild(editBtn);
+                row.appendChild(tdEdit);
 
                 const tdDelete = document.createElement("td");
                 const btn = document.createElement("button");
                 btn.innerText = "Удалить";
                 btn.onclick = () => {
-                    fetch(`/api/users/${user.id}`, {
+                    fetch(`/api/admin/users/${user.id}`, {
                         method: "DELETE",
                         headers: {
                             Authorization: "Bearer " + token

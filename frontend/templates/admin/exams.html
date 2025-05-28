@@ -1,16 +1,15 @@
-<!-- templates/admin/exams.html -->
 {% extends "admin/base.html" %}
 
 {% block content %}
 <h2>Экзамены</h2>
-<button onclick="location.href='/admin/exams/create'">Создать экзамен</button>
+<button onclick="location.href='/teacher/exams/create'">Создать экзамен</button>
 <div id="exam-list">Загрузка...</div>
 
 <script>
     const token = localStorage.getItem("access_token");
 
     function loadExams() {
-        fetch("/api/admin/exams", {
+        fetch("/api/common/exams", {
             credentials: "include"
         })
         .then(res => res.json())

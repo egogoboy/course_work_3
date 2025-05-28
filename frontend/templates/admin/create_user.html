@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <meta charset="UTF-8">
+    <title>Создание пользователя</title>
+</head>
+<body>
+    <button id="back-button">Назад</button>
+
+    <h2>Создание пользователя</h2>
+    <form id="create-user-form">
+        <div>
+            <label for="username">Имя пользователя:</label>
+            <input name="username" id="username" required>
+        </div>
+        <div id = "password-container">
+            <label for="password">Пароль:</label>
+              <input type="text" id="password" required>
+              <button type="button" onclick="generatePassword()">Сгенерировать</button><br>
+        </div>
+
+        <div id = "role-select-container">
+        <label for="role">Роль:</label><br>
+          <select id="role" required>
+            <option value="">Выберите роль</option>
+            <option value="student">Студент</option>
+            <option value="teacher">Преподаватель</option>
+            <option value="admin">Администратор</option>
+        </select><br><br>
+        </div>
+
+        <div id="group-select-container" style="display:none;">
+          <label for="group">Группа:</label><br>
+          <select id="group"></select><br><br>
+        </div>
+
+        <button type="submit">Создать пользователя</button>
+    </form>
+
+    <script>
+        const roleSelect = document.getElementById("role");
+        const groupContainer = document.getElementById("group-select-container");
+        const groupSelect = document.getElementById("group");
+        const form = document.getElementById("create-user-form");
+
+        roleSelect.addEventListener("change", async () => {
+          if (roleSelect.value === "student") {
+            groupContainer.style.display = "block";
+            await loadGroups();
+          } else {
+            groupContainer.style.display = "none";
+          }
+        });
+
+        async function loadGroups() {
+          try {
+            const res = await fetch("/api/admin/groups", {
+              credentials: "include"
+            });
+            const groups = await res.json();
+            groupSelect.innerHTML = "";
+            groups.forEach(group => {
+              const option = document.createElement("option");
+              option.value = group.id;
+              option.textContent = group.name;
+              groupSelect.appendChild(option);
+            });
+          } catch (err) {
+            alert("Не удалось загрузить список групп");
+          }
+        }
+
+        function generatePassword() {
+          const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+          const length = 10;
+          let password = "";
+          for (let i = 0; i < length; i++) {
+            password += charset.charAt(Math.floor(Math.random() * charset.length));
+          }
+          document.getElementById("password").value = password;
+        }
+
+        form.addEventListener("submit", async (e) => {
+
+            e.preventDefault();
+
+
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+            const role = document.getElementById("role").value;
+            const groupId = role === "student" ? groupSelect.value : null;
+
+            if (role === "student" && !groupId) {
+                alert("Выберите группу для студента");
+                return;
+            }
+  
+            const payload = {
+                username,
+                password,
+                role,
+                ...(groupId && { group_id: parseInt(groupId) })
+            };
+  
+            const res = await fetch("/api/admin/users/create", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                credentials: "include",
+                body: JSON.stringify(payload)
+            });
+  
+            if (res.ok) {
+                alert("Пользователь создан");
+                form.reset();
+                groupContainer.style.display = "none";
+            } else {
+                const err = await res.json();
+                alert("Ошибка: " + (err.detail || "не удалось создать пользователя"));
+            }
+
+            function delay(time) {
+              return new Promise(resolve => setTimeout(resolve, time));
+            }
+
+            delay(10000).then(() => window.location.href = document.referrer)
+
+        });
+
+        document.getElementById("back-button").addEventListener("click", () => {
+            if (document.referrer) {
+                window.location.href = document.referrer;
+            } else {
+                window.location.href = "/admin/users";  // fallback
+            }
+        });
+    </script>
+</body>
+</html>

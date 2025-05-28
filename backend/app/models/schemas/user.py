@@ -10,6 +10,7 @@ class UserLogin(UserBase):
 
 class UserCreate(UserLogin):
     role: str
+    group_id: Optional[int] = None
 
 class UserOut(UserBase):
     id: int
@@ -21,6 +22,7 @@ class UserOut(UserBase):
 
 class UserUpdate(UserBase):
     category: Optional[int] = None
+    role: Optional[str] = None
     group_id: Optional[int] = None  # если есть привязка к группе
 
     class Config:

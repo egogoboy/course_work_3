@@ -34,7 +34,7 @@
                 const tdEdit = document.createElement("td");
                 const editBtn = document.createElement("button");
                 editBtn.innerText = "Редактировать";
-                editBtn.onclick = () => location.href = `/admin/groups/${group.id}/edit`;
+                editBtn.onclick = () => location.href = `/admin/groups/edit/${group.id}`;
                 tdEdit.appendChild(editBtn);
                 row.appendChild(tdEdit);
 
@@ -42,9 +42,9 @@
                 const delBtn = document.createElement("button");
                 delBtn.innerText = "Удалить";
                 delBtn.onclick = () => {
-                    fetch(`/api/groups/${group.id}`, {
+                    fetch(`/api/admin/groups/${group.id}`, {
                         method: "DELETE",
-                        headers: { Authorization: "Bearer " + token }
+                        credentials: "include"
                     }).then(() => loadGroups());
                 };
                 tdDelete.appendChild(delBtn);

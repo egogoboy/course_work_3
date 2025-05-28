@@ -6,7 +6,7 @@ from crud.exam import delete_exam
 
 router = APIRouter()
 
-@router.post("/delete")
+@router.delete("/{exam_id}")
 async def delete_exam_endpoint(exam_id: int,
                                db: Session = Depends(get_db)):
-    return delete_exam(exam_id, db)
+    return await delete_exam(exam_id, db)
