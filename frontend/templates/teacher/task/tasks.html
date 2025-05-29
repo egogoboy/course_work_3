@@ -1,0 +1,84 @@
+<h2>Задания для экзамена #{{ exam_id }}</h2>
+
+<div id="task-list">
+</div>
+
+<button onclick="addTask()">➕ Добавить задание</button>
+
+<script>
+let examId = {{ exam_id }};
+let taskIndex = 0;
+
+function addTask() {
+    const taskList = document.getElementById("task-list");
+    const taskHtml = `
+    <div class="task-block" data-index="${taskIndex}">
+        <input type="text" name="title_${taskIndex}" placeholder="Название задания"><br>
+        <textarea name="body_${taskIndex}" placeholder="Текст задания"></textarea><br>
+        <select name="answer_type_${taskIndex}" onchange="toggleOptions(this, ${taskIndex})">
+            <option value="text">Текст</option>
+            <option value="choice">Выбор</option>
+        </select><br>
+        <div class="options-block" id="options_${taskIndex}" style="display: none;">
+            <div id="option-fields-${taskIndex}"></div>
+            <button onclick="addOption(${taskIndex})" type="button">Добавить вариант</button><br>
+            <input type="number" name="correct_option_${taskIndex}" placeholder="Номер правильного варианта (с 0)">
+        </div>
+        <button onclick="submitTask(${taskIndex})" type="button">Сохранить задание</button>
+        <hr>
+    </div>`;
+    taskList.insertAdjacentHTML('beforeend', taskHtml);
+    taskIndex++;
+}
+
+function toggleOptions(select, index) {
+    const block = document.getElementById(`options_${index}`);
+    block.style.display = (select.value === 'choice') ? 'block' : 'none';
+}
+
+function addOption(index) {
+    const container = document.getElementById(`option-fields-${index}`);
+    const fieldCount = container.children.length;
+    const input = document.createElement("input");
+    input.name = `option_${index}_${fieldCount}`;
+    input.placeholder = `Вариант ${fieldCount}`;
+    container.appendChild(input);
+    container.appendChild(document.createElement("br"));
+}
+
+async function submitTask(index) {
+    const title = document.querySelector(`[name="title_${index}"]`).value;
+    const body = document.querySelector(`[name="body_${index}"]`).value;
+    const answer_type = document.querySelector(`[name="answer_type_${index}"]`).value;
+
+    let payload = {
+        title,
+        body,
+        answer_type,
+    };
+
+    if (answer_type === "choice") {
+        const options = Array.from(document.querySelectorAll(`[name^="option_${index}_"]`))
+                             .map(el => el.value);
+        const correct_option = parseInt(document.querySelector(`[name="correct_option_${index}"]`).value);
+        payload.options = options;
+        payload.correct_option = correct_option;
+    }
+
+    const response = await fetch(`/api/teacher/exam/${examId}/tasks`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(payload)
+    });
+
+    if (response.ok) {
+        alert("Задание создано!");
+    } else {
+        const err = await response.json();
+        alert("Ошибка: " + JSON.stringify(err));
+    }
+}
+</script>

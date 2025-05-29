@@ -16,6 +16,7 @@ async def create_exam_endpoint(exam: ExamCreate,
                                db: Session = Depends(get_db),
                                current_user = Depends(get_current_user)):
     created_exam = await create_exam(exam, current_user.id, db)
+
     return created_exam
 
 

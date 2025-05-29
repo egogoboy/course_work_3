@@ -2,6 +2,7 @@
 
 {% block content %}
 <h2>Экзамены</h2>
+<button onclick="location.href='/teacher/exams/create'">Создать новый экзамен</button>
 <div id="exam-list">Загрузка...</div>
 
 <script>
@@ -35,6 +36,13 @@
                 editBtn.onclick = () => location.href = `/teacher/exams/edit/${exam.id}`;
                 tdEdit.appendChild(editBtn);
                 row.appendChild(tdEdit);
+
+                const tdEditTasks = document.createElement("td");
+                const editTasksBtn = document.createElement("button");
+                editTasksBtn.innerText = "Редактировать задания";
+                editTasksBtn.onclick = () => location.href = `/teacher/exams/${exam.id}/tasks/edit`;
+                tdEditTasks.appendChild(editTasksBtn);
+                row.appendChild(tdEditTasks);
 
                 const tdDelete = document.createElement("td");
                 const delBtn = document.createElement("button");

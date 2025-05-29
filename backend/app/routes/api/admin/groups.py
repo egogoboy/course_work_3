@@ -31,7 +31,7 @@ async def get_all_groups_endpoint(db: Session = Depends(get_db)):
 
 
 @router.get("/{group_id}", 
-            dependencies=[Depends(admin_only)])
+            dependencies=[Depends(admin_and_teacher)])
 async def get_current_groups_endpoint(group_id: int,
                                       db: Session = Depends(get_db)):
     return await get_current_group(group_id, db)

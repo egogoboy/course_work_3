@@ -142,7 +142,11 @@
               return new Promise(resolve => setTimeout(resolve, time));
             }
 
-            delay(1000).then(() => window.location.href = document.referrer)
+            const data = await response.json();
+            console.log(data);
+            const examId = data.id;
+
+            delay(1000).then(() => window.location.href = `/teacher/tasks/${examId}/create`)
         });
 
         loadSubjects();
