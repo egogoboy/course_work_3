@@ -13,11 +13,9 @@ class ExamCreate(ExamBase):
     start_time: datetime
     end_time: datetime
 
-
-class ExamOut(ExamBase):
+class ExamOut(ExamCreate):
     id: int
     user_id: int
-    group_id: Optional[int] = None
     status: str
 
     model_config = ConfigDict(from_attributes=True)

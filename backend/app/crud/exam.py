@@ -31,6 +31,16 @@ async def get_all_exams(db: Session):
     return list(ExamOut.model_validate(group) for group in groups)
 
 
+async def get_current_exam(exam_id: int,
+                           db: Session):
+    group = db.query(Exam).filter(Exam.id == exam_id).first()
+
+    if group is None:
+        raise ExamNotFoundException
+
+    return ExamOut.model_validate(group)
+
+
 async def delete_exam(exam_id: int,
                       db: Session):
     exam = db.query(Exam).filter(Exam.id == exam_id).first()
@@ -39,3 +49,20 @@ async def delete_exam(exam_id: int,
     db.delete(exam)
     db.commit()
     return ExamOut.model_validate(exam)
+
+
+async def update_exam(id: int,
+               new_group_data: ExamCreate,
+               db: Session):
+    current_group = db.query(Exam).filter(Exam.id == id).first()
+
+    if not current_group:
+        raise ExamNotFoundException
+
+    for field, value in new_group_data.model_dump(exclude_unset=True).items():
+        setattr(current_group, field, value)
+
+    db.commit()
+    db.refresh(current_group)
+
+    return ExamOut.model_validate(current_group)

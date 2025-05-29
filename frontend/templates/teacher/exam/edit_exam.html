@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Редактирование экзамена</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <h2>Редактирование экзамена</h2>
+    <form id="edit-exam-form">
+        <div>
+            <label for="title">Название экзамена:</label>
+            <input type="text" id="title" name="title" required>
+        </div>
+
+        <div>
+            <label for="body">Описание экзамена:</label>
+            <input type="text" id="body" name="body" required>
+        </div>
+
+        <div>
+            <label for="subject">Предмет:</label>
+            <select id="subject" name="subject_id" required></select>
+        </div>
+
+        <div>
+            <label for="group">Группа:</label>
+            <select id="group" name="group_id" required></select>
+        </div>
+
+        <div>
+            <label for="start_time">Дата и время начала:</label>
+            <input type="datetime-local" id="start_time" name="start_time" required>
+        </div>
+
+        <div>
+            <label for="end_time">Дата и время окончания:</label>
+            <input type="datetime-local" id="end_time" name="end_time" required>
+        </div>
+
+        <button type="submit">Сохранить изменения</button>
+    </form>
+
+    <p id="message"></p>
+
+    <script>
+        const examId = {{ exam_id }};
+        const form = document.getElementById("edit-exam-form");
+
+        function toDatetimeLocalString(isoString) {
+            const date = new Date(isoString);
+            return date.toISOString().slice(0, 16);
+        }
+
+        function normalizeTime(timeStr) {
+            return timeStr.length === 16 ? timeStr + ":00" : timeStr;
+        }
+
+        async function loadExamData() {
+            try {
+                const res = await fetch(`/api/teacher/exams/${examId}`, {
+                    credentials: "include"
+                });
+                const exam = await res.json();
+
+                document.getElementById("title").value = exam.title;
+                document.getElementById("body").value = exam.body;
+                document.getElementById("start_time").value = toDatetimeLocalString(exam.start_time);
+                document.getElementById("end_time").value = toDatetimeLocalString(exam.end_time);
+
+                await loadGroups(exam.group_id);
+                await loadSubjects(exam.subject_id);
+            } catch (err) {
+                alert("Не удалось загрузить экзамен");
+            }
+        }
+
+        async function loadGroups(selectedId) {
+            const res = await fetch("/api/admin/groups", { credentials: "include" });
+            const groups = await res.json();
+            const groupSelect = document.getElementById("group");
+            groups.forEach(group => {
+                const option = document.createElement("option");
+                option.value = group.id;
+                option.textContent = group.name;
+                if (group.id === selectedId) option.selected = true;
+                groupSelect.appendChild(option);
+            });
+        }
+
+        async function loadSubjects(selectedId) {
+            const res = await fetch("/api/admin/subjects", { credentials: "include" });
+            const subjects = await res.json();
+            const subjectSelect = document.getElementById("subject");
+            subjects.forEach(subject => {
+                const option = document.createElement("option");
+                option.value = subject.id;
+                option.textContent = subject.name;
+                if (subject.id === selectedId) option.selected = true;
+                subjectSelect.appendChild(option);
+            });
+        }
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const payload = {
+                title: document.getElementById("title").value,
+                body: document.getElementById("body").value,
+                group_id: parseInt(document.getElementById("group").value),
+                subject_id: parseInt(document.getElementById("subject").value),
+                start_time: normalizeTime(document.getElementById("start_time").value),
+                end_time: normalizeTime(document.getElementById("end_time").value)
+            };
+
+            const response = await fetch(`/api/teacher/exams/${examId}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                credentials: "include",
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                message.innerText = "Изменения сохранены.";
+                message.style.color = "green";
+            } else {
+                const error = await response.json();
+                message.innerText = error.detail || "Ошибка при сохранении";
+                message.style.color = "red";
+            }
+
+            function delay(time) {
+              return new Promise(resolve => setTimeout(resolve, time));
+            }
+
+            delay(1000).then(() => window.location.href = document.referrer)
+        });
+
+        loadExamData();
+    </script>
+</body>
+</html>
