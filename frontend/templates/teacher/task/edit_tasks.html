@@ -46,6 +46,78 @@
 
     <script>
 
+        async function loadTasks(examId) {
+            const response = await fetch(`/api/teacher/tasks/${examId}`, {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+
+            if (response.ok) {
+                const tasks = await response.json();
+                tasks.forEach((task, index) => {
+                    addTask(task, index);  // добавление блока с данными
+                });
+            } else {
+                console.warn("Не удалось загрузить задания. Возможно, их ещё нет.");
+            }
+        }
+
+        function loadOptions(index, options = [], correct_option = null) {
+            for (let i = 0; i < options.length; i++) {
+                addOption(index, options[i], i === correct_option);
+            }
+        }
+
+        function addOption(index, value = null, isCorrect = false) {
+            console.log(value);
+            const optionFields = document.getElementById(`option-fields-${index}`);
+            const correctSelect = document.getElementById(`correct_option_${index}`);
+            const fieldCount = optionFields.querySelectorAll(".option-wrapper").length;
+
+            const wrapper = document.createElement("div");
+            wrapper.className = "option-wrapper";
+            wrapper.style.display = "flex";
+            wrapper.style.alignItems = "center";
+            wrapper.style.marginBottom = "4px";
+
+            const optIndex = optionFields.children.length;
+
+            const numberLabel = document.createElement("span");
+            numberLabel.innerText = `${fieldCount + 1}.`;
+            numberLabel.style.marginRight = "5px";
+            wrapper.appendChild(numberLabel);
+
+            const input = document.createElement("input");
+            input.type = "text";
+            input.value = value ? value : "";
+            input.placeholder = `Вариант ${optIndex + 1}`;
+            wrapper.appendChild(input);
+            wrapper.appendChild(document.createElement("br"));
+
+            const removeBtn = document.createElement("span");
+            removeBtn.innerText = "❌";
+            removeBtn.style.cursor = "pointer";
+            removeBtn.style.marginLeft = "8px";
+            removeBtn.onclick = () => {
+                wrapper.remove();
+                correctSelect.querySelector(`option[value="${fieldCount}"]`)?.remove();
+                reindexOptions(index);  // пересчёт номеров
+            };
+            wrapper.appendChild(removeBtn);
+
+            const option = document.createElement("option");
+            option.value = optIndex;
+            option.textContent = `Вариант ${optIndex + 1}`;
+            if (isCorrect) {
+                option.selected = true;
+            }
+
+            optionFields.append(wrapper);
+            correctSelect.appendChild(option);
+        }
+
         function formatDateRange(start, end) {
             const options = {
                 day: 'numeric',
@@ -79,6 +151,7 @@
             return data.name;
         }
 
+        // JS — можно вызвать на window.onload или вручную
         async function loadExamInfo(examId) {
             try {
                 const res = await fetch(`/api/teacher/exams/${examId}`, {
@@ -116,6 +189,7 @@
                 }
             });
             loadExamInfo(examId);
+            loadTasks(examId);
         };
 
         function updateSaveAllButton() {
@@ -124,37 +198,51 @@
             saveAllBtn.disabled = tasks.length === 0;
         }
 
-        function addTask() {
+        function addTask(task = null, index = null) {
             const taskList = document.getElementById("task-list");
             const taskBlock = document.createElement("div");
             taskBlock.className = "task-block";
             taskBlock.style.marginBottom = "30px";
-            taskBlock.dataset.index = taskIndex;
+            taskBlock.dataset.index = index ? index : taskIndex;
+
+            const title = task ? task.title : "Задание";
+            const body = task ? task.body : "";
+            const answer_type = task ? task.answer_type : "text";
+            const options = task && task.options ? task.options : [];
+            const correct_option = task ? task.correct_option : null;
+
 
             taskBlock.innerHTML = `
-                <input type="text" name="title_${taskIndex}" placeholder="Название задания" value="Задание"><br><br>
-                <textarea name="body_${taskIndex}" placeholder="Текст задания" rows="4" style="width: 100%; resize: vertical;"></textarea><br><br>
+                    <input type="text" name="title_${taskIndex}" placeholder="Название задания" value="${title}"><br><br>
+                    <textarea name="body_${taskIndex}" placeholder="Текст задания" rows="4" style="width: 100%; resize: vertical;">${body}</textarea><br><br>
 
-                <label>Тип ответа:</label>
-                <select name="answer_type_${taskIndex}" onchange="toggleOptions(this, ${taskIndex})">
-                    <option value="text">Текст</option>
-                    <option value="choice">Выбор</option>
-                </select><br><br>
+                    <label>Тип ответа:</label>
+                    <select name="answer_type_${taskIndex}" onchange="toggleOptions(this, ${taskIndex})">
+                        <option value="text" ${answer_type === "text" ? "selected" : ""}>Текст</option>
+                        <option value="choice" ${answer_type === "choice" ? "selected" : ""}>Выбор</option>
+                    </select><br><br>
 
-                <div class="options-block" id="options_${taskIndex}" style="display: none; margin-bottom: 10px;">
-                    <div id="option-fields-${taskIndex}"></div>
-                    <button onclick="addOption(${taskIndex})" type="button">Добавить вариант</button><br><br>
-                    <label for="correct_option_${taskIndex}">Правильный вариант:</label>
-                    <select name="correct_option_${taskIndex}" id="correct_option_${taskIndex}"></select>
-                </div>
+                    <div class="options-block" id="options_${taskIndex}" style="display: ${answer_type === "choice" ? "block" : "none"}; margin-bottom: 10px;">
+                        <div id="option-fields-${taskIndex}"></div>
+                        <button onclick="addOption(${taskIndex})" type="button">Добавить вариант</button><br><br>
+                        <label for="correct_option_${taskIndex}">Правильный вариант:</label>
+                        <select name="correct_option_${taskIndex}" id="correct_option_${taskIndex}"></select>
+                    </div>
 
-                <button onclick="submitTask(${taskIndex})" type="button">💾 Сохранить задание</button>
-                <button onclick="removeTask(this)" type="button" style="margin-left: 10px; color: red;">🗑️ Удалить</button>
-                <hr>
-            `;
+                    <button onclick="removeTask(this)" type="button" style="margin-left: 10px; color: red;">🗑️ Удалить</button>
+                    <hr>
+                `;
+
 
             taskList.appendChild(taskBlock);
-            taskIndex++;
+
+            if (answer_type === "choice") {
+                // options.forEach((opt, i) => addOption(taskIndex, opt, i === correct_option));
+                document.getElementById(`options_${taskIndex}`).style.display = "block";
+                loadOptions(taskIndex, options, correct_option)
+            }
+            
+            if (!task) taskIndex++;
             updateSaveAllButton();
         }
 
@@ -163,49 +251,6 @@
             block.style.display = (select.value === 'choice') ? 'block' : 'none';
         }
 
-        function addOption(index) {
-            const container = document.getElementById(`option-fields-${index}`);
-            const correctSelect = document.getElementById(`correct_option_${index}`);
-            const fieldCount = container.querySelectorAll(".option-wrapper").length;
-
-            const wrapper = document.createElement("div");
-            wrapper.className = "option-wrapper";
-            wrapper.style.display = "flex";
-            wrapper.style.alignItems = "center";
-            wrapper.style.marginBottom = "4px";
-
-            // Номер варианта
-            const numberLabel = document.createElement("span");
-            numberLabel.innerText = `${fieldCount + 1}.`;
-            numberLabel.style.marginRight = "5px";
-            wrapper.appendChild(numberLabel);
-
-            // Поле ввода
-            const input = document.createElement("input");
-            input.name = `option_${index}_${fieldCount}`;
-            input.placeholder = `Вариант ${fieldCount + 1}`;
-            input.style.flex = "1";
-            wrapper.appendChild(input);
-
-            // Крестик
-            const removeBtn = document.createElement("span");
-            removeBtn.innerText = "❌";
-            removeBtn.style.cursor = "pointer";
-            removeBtn.style.marginLeft = "8px";
-            removeBtn.onclick = () => {
-                wrapper.remove();
-                correctSelect.querySelector(`option[value="${fieldCount}"]`)?.remove();
-                reindexOptions(index);  // пересчёт номеров
-            };
-            wrapper.appendChild(removeBtn);
-
-            container.appendChild(wrapper);
-
-            const option = document.createElement("option");
-            option.value = fieldCount;
-            option.innerText = `Вариант ${fieldCount + 1}`;
-            correctSelect.appendChild(option);
-        }
 
         function reindexOptions(index) {
             const wrappers = document.querySelectorAll(`#option-fields-${index} .option-wrapper`);

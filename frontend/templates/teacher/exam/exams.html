@@ -40,7 +40,7 @@
                 const tdEditTasks = document.createElement("td");
                 const editTasksBtn = document.createElement("button");
                 editTasksBtn.innerText = "Редактировать задания";
-                editTasksBtn.onclick = () => location.href = `/teacher/exams/${exam.id}/tasks/edit`;
+                editTasksBtn.onclick = () => location.href = `/teacher/tasks/${exam.id}/edit`;
                 tdEditTasks.appendChild(editTasksBtn);
                 row.appendChild(tdEditTasks);
 

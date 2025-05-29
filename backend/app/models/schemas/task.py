@@ -22,3 +22,6 @@ class TaskOut(TaskBase):
 
     class Config:
         from_attributes = True
+
+class TaskBulkCreate(BaseModel):
+    tasks: List[TaskCreate]

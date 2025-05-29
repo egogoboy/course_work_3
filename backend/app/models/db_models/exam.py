@@ -19,6 +19,6 @@ class Exam(Base):
 
     subject = relationship("Subject", back_populates="exams")
     user = relationship("User", back_populates="exams")
-    tasks = relationship("Task", back_populates="exam")
+    tasks = relationship("Task", back_populates="exam", cascade="all, delete-orphan")
 
     group = relationship("Group", back_populates="exams")
