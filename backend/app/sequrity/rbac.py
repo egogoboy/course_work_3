@@ -67,5 +67,6 @@ def role_checker(roles: list[str]):
 
 
 admin_only = RoleChecker(['admin'])
+admin_and_teacher= RoleChecker(['admin', 'teacher'])
 teacher_only = RoleChecker(['teacher'])
 student_only = RoleChecker(['student'])

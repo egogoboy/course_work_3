@@ -12,7 +12,9 @@ async def create_exam(exam_data: ExamCreate,
         body=exam_data.body,
         subject_id=exam_data.subject_id,
         user_id=user_id,
-        group_id=exam_data.group_id
+        group_id=exam_data.group_id,
+        start_time=exam_data.start_time,
+        end_time=exam_data.end_time
     )
 
     db.add(new_exam)
@@ -20,6 +22,13 @@ async def create_exam(exam_data: ExamCreate,
     db.refresh(new_exam)
 
     return ExamOut.model_validate(new_exam)
+
+
+
+async def get_all_exams(db: Session):
+    groups = db.query(Exam).all()
+
+    return list(ExamOut.model_validate(group) for group in groups)
 
 
 async def delete_exam(exam_id: int,

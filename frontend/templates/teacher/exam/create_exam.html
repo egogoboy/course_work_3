@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Создание экзамена</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <h2>Создание экзамена</h2>
+    <form id="create-exam-form">
+        <div>
+            <label for="title">Название экзамена:</label>
+            <input type="text" id="title" name="title" required>
+        </div>
+
+        <div>
+            <label for="body">Описание экзамена:</label>
+            <input type="text" id="body" name="body" required>
+        </div>
+
+        <div>
+            <label for="subject">Предмет:</label>
+            <select id="subject" name="subject_id" required>
+                <option value="">Выберите предмет</option>
+            </select>
+        </div>
+
+        <div>
+            <label for="group">Группа:</label>
+            <select id="group" name="group_id" required>
+                <option value="">Выберите группу</option>
+            </select>
+        </div>
+
+        <div>
+            <label for="start_time">Дата и время начала:</label>
+            <input type="datetime-local" id="start_time" name="start_time" required>
+        </div>
+
+        <div>
+            <label for="end_time">Дата и время окончания:</label>
+            <input type="datetime-local" id="end_time" name="end_time" required>
+        </div>
+
+        <button type="submit">Создать экзамен</button>
+
+    </form>
+
+    <p id="message"></p>
+
+    <script>
+        const form = document.getElementById('create-exam-form');
+
+        async function loadGroups() {
+            try {
+                const res = await fetch("/api/admin/groups", { credentials: "include" });
+                const groups = await res.json();
+                const groupSelect = document.getElementById("group");
+                groups.forEach(group => {
+                    const option = document.createElement("option");
+                    option.value = group.id;
+                    option.textContent = group.name;
+                    groupSelect.appendChild(option);
+                });
+            } catch (err) {
+                alert("Не удалось загрузить группы");
+            }
+        }
+
+        async function loadSubjects() {
+            try {
+                const res = await fetch("/api/admin/subjects", { credentials: "include" });
+                const subjects = await res.json();
+                const subjectSelect = document.getElementById("subject");
+                subjects.forEach(subject => {
+                    const option = document.createElement("option");
+                    option.value = subject.id;
+                    option.textContent = subject.name;
+                    subjectSelect.appendChild(option);
+                });
+            } catch (err) {
+                alert("Не удалось загрузить предметы");
+            }
+        }
+
+        function validateTimes(start, end) {
+            const startTime = new Date(start);
+            const endTime = new Date(end);
+            const diffMs = endTime - startTime;
+            const diffMinutes = diffMs / 60000;
+
+            return diffMinutes >= 40;
+        }
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const normalizeTime = (timeStr) => timeStr.length === 16 ? timeStr + ":00" : timeStr;
+
+            const title = document.getElementById("title").value;
+            const body = document.getElementById("body").value;
+            const groupId = document.getElementById("group").value;
+            const subjectId = document.getElementById("subject").value;
+            const startTime = document.getElementById("start_time").value;
+            const endTime = document.getElementById("end_time").value;
+
+            if (!validateTimes(startTime, endTime)) {
+                alert("Экзамен должен длиться минимум 40 минут");
+                return;
+            }
+
+            const payload = {
+                title,
+                body,
+                group_id: parseInt(groupId),
+                subject_id: parseInt(subjectId),
+                start_time: normalizeTime(startTime),
+                end_time: normalizeTime(endTime)
+            };
+
+            console.log(payload);
+
+            const response = await fetch("/api/teacher/exams/create", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                credentials: "include",
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                message.innerText = "Экзамен успешно создан.";
+                message.style.color = "green";
+            } else {
+                const error = await response.json();
+                message.innerText = error.detail || "Ошибка при создании";
+                message.style.color = "red";
+            }
+
+            function delay(time) {
+              return new Promise(resolve => setTimeout(resolve, time));
+            }
+
+            delay(1000).then(() => window.location.href = document.referrer)
+        });
+
+        loadSubjects();
+        loadGroups();
+    </script>
+</body>
+</html>

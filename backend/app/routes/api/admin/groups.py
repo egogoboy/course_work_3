@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from crud.group import create_group, get_all_groups, delete_group, update_group, get_current_group
 from models.schemas.group import GroupCreate
 from sequrity.auth import get_db
-from sequrity.rbac import admin_only
+from sequrity.rbac import admin_only, admin_and_teacher
 
 
 router = APIRouter()
@@ -25,7 +25,7 @@ async def delete_group_endpoint(group_id: int,
 
 
 @router.get("/", 
-            dependencies=[Depends(admin_only)])
+            dependencies=[Depends(admin_and_teacher)])
 async def get_all_groups_endpoint(db: Session = Depends(get_db)):
     return await get_all_groups(db)
 

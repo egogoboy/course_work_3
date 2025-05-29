@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from crud.subject import create_subject, get_all_subjects, delete_subject, update_subject, get_current_subject
 from models.schemas.subject import SubjectCreate
 from sequrity.auth import get_db
-from sequrity.rbac import admin_only
+from sequrity.rbac import admin_only, admin_and_teacher
 
 
 router = APIRouter()
@@ -26,13 +26,13 @@ async def delete_subject_endpoint(subject_id: int,
 
 
 @router.get("/", 
-            dependencies=[Depends(admin_only)])
+            dependencies=[Depends(admin_and_teacher)])
 async def get_all_subjects_endpoint(db: Session = Depends(get_db)):
     return await get_all_subjects(db)
 
 
 @router.get("/{subject_id}", 
-            dependencies=[Depends(admin_only)])
+            dependencies=[Depends(admin_and_teacher)])
 async def get_current_subjects_endpoint(subject_id: int,
                                       db: Session = Depends(get_db)):
     return await get_current_subject(subject_id, db)

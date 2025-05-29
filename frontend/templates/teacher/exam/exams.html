@@ -1,4 +1,4 @@
-{% extends "admin/base.html" %}
+{% extends "teacher/base.html" %}
 
 {% block content %}
 <h2>Экзамены</h2>
@@ -7,8 +7,8 @@
 <script>
     const token = localStorage.getItem("access_token");
 
-    function loadExams() {
-        fetch("/api/common/exams", {
+    function loadGroups() {
+        fetch("/api/teacher/exams", {
             credentials: "include"
         })
         .then(res => res.json())
@@ -26,13 +26,13 @@
                 const row = document.createElement("tr");
 
                 const tdInfo = document.createElement("td");
-                tdInfo.innerText = `${exam.title} (${exam.status})`;
+                tdInfo.innerText = exam.title;
                 row.appendChild(tdInfo);
 
                 const tdEdit = document.createElement("td");
                 const editBtn = document.createElement("button");
                 editBtn.innerText = "Редактировать";
-                editBtn.onclick = () => location.href = `/admin/exams/${exam.id}/edit`;
+                editBtn.onclick = () => location.href = `/teacher/exams/edit/${exam.id}`;
                 tdEdit.appendChild(editBtn);
                 row.appendChild(tdEdit);
 
@@ -40,10 +40,10 @@
                 const delBtn = document.createElement("button");
                 delBtn.innerText = "Удалить";
                 delBtn.onclick = () => {
-                    fetch(`/api/exams/${exam.id}`, {
+                    fetch(`/api/teacher/exams/${exam.id}`, {
                         method: "DELETE",
-                        headers: { Authorization: "Bearer " + token }
-                    }).then(() => loadExams());
+                        credentials: "include"
+                    }).then(() => loadGroups());
                 };
                 tdDelete.appendChild(delBtn);
                 row.appendChild(tdDelete);
@@ -54,6 +54,6 @@
         });
     }
 
-    loadExams();
+    loadGroups();
 </script>
 {% endblock %}
