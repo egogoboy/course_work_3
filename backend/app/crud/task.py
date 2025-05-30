@@ -1,6 +1,7 @@
 from models.db_models.exam import Exam
 from models.db_models.task import Task
-from models.schemas.task import TaskBulkCreate, TaskCreate
+from models.schemas.task import TaskBulkCreate, TaskCreate, TaskOut
+from utils.exceptions.task import TaskNotFoundException
 from utils.exceptions.exam import ExamNotFoundException
 from sqlalchemy.orm import Session
 import json
@@ -21,24 +22,51 @@ async def create_task(task_data: TaskCreate, db: Session):
     return task
 
 
-async def add_tasks(exam_id: int,
+async def add_tasks(in_exam_id: int,
                     data: TaskBulkCreate,
                     db: Session):
-    exam = db.query(Exam).filter(Exam.id == exam_id).first()
+    exam = db.query(Exam).filter(Exam.id == in_exam_id).first()
+
+    print(in_exam_id)
 
     if not exam:
         raise ExamNotFoundException
 
     for task in data.tasks:
         db_task = Task(
-            exam_id=exam_id,
             title=task.title,
             body=task.body,
+            exam_id=in_exam_id,
             answer_type=task.answer_type,
             options=json.dumps(task.options) if task.options else None,
             correct_option=task.correct_option
         )
+        print(db_task.exam_id)
         db.add(db_task) 
 
     db.commit()
+    print(data.tasks)
     return {"detail": f"{len(data.tasks)} заданий добавлено."}
+
+
+async def get_exam_tasks(exam_id: int,
+                         db: Session):
+    existing_exam = db.query(Exam).filter(Exam.id == exam_id).first()
+
+    if not existing_exam:
+        raise ExamNotFoundException
+
+    return db.query(Task).filter(Task.exam_id == exam_id).all()
+
+
+async def delete_task(task_id: int,
+                      db: Session):
+
+    task = db.query(Task).filter(Task.id == task_id).first()
+
+    if not task:
+        raise TaskNotFoundException
+
+    db.delete(task)
+    db.commit()
+    return TaskOut.model_validate(task)

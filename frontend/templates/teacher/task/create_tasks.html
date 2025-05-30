@@ -272,6 +272,7 @@
 
             if (response.ok) {
                 alert("Все задания успешно сохранены!");
+                window.location.href = "/teacher/exams";
             } else {
                 const err = await response.json();
                 alert("Ошибка: " + JSON.stringify(err));

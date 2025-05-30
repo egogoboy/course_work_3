@@ -1,329 +1,258 @@
+<!DOCTYPE html>
 <html lang="ru">
 <head>
+    <meta charset="UTF-8">
+    <title>Редактирование заданий</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <style>
         .exam-info-box {
-          background-color: #f8f9fa;
-          border: 1px solid #ced4da;
-          padding: 20px;
-          border-radius: 10px;
-          margin-bottom: 30px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-          max-width: 600px;
-        }
-
-        .exam-info-box h2 {
-          margin-top: 0;
-          color: #2c3e50;
-        }
-
-        #exam-details {
-          font-size: 1rem;
-          color: #333;
-          line-height: 1.6;
+            background-color: #f8f9fa;
+            border: 1px solid #ced4da;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            max-width: 600px;
         }
     </style>
-    <meta charset="UTF-8">
-    <title>Задания экзамена</title>
 </head>
 <body>
 
-    <div id="exam-info" class="exam-info-box" style="margin-bottom: 20px;">
-        <h2 id="exam-title">Загрузка...</h2>
-        <div id="exam-details"></div>
-    </div>
-    <h2 id="exam-title">Задания для экзамена</h2>
+<div id="exam-info" class="exam-info-box">
+    <h2 id="exam-title">Загрузка...</h2>
+    <div id="exam-details"></div>
+</div>
 
-    <div id="exam-info" style="margin-bottom: 20px;"></div>
+<h2>Задания экзамена</h2>
+<div id="task-list"></div>
 
-    <div id="task-list"></div>
+<div style="margin-top: 20px;">
+    <button onclick="addTask()" id="add-task-btn">➕ Добавить задание</button>
+    <button onclick="submitAllTasks()" id="save-all-btn" style="margin-left: 10px;" disabled>💾 Сохранить все изменения</button>
+</div>
 
-    <!-- Кнопки внизу -->
-    <div style="margin-top: 20px;">
-        <button onclick="addTask()" id="add-task-btn">➕ Добавить задание</button>
-        <button onclick="submitAllTasks()" id="save-all-btn" style="margin-left: 10px;" disabled>💾 Сохранить все изменения</button>
-    </div>
+<script>
+    const examId = window.location.pathname.split("/")[3];
+    let taskIndex = 0;
 
-    <script>
+    async function loadSubjectName(id) {
+        const res = await fetch(`/api/admin/subjects/${id}`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+        });
+        const data = await res.json();
+        return data.name;
+    }
 
-        async function loadTasks(examId) {
-            const response = await fetch(`/api/teacher/tasks/${examId}`, {
-                method: "GET",
+    async function loadGroupName(id) {
+        const res = await fetch(`/api/admin/groups/${id}`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+        });
+        const data = await res.json();
+        return data.name;
+    }
+
+    async function loadExamInfo(examId) {
+        try {
+            const res = await fetch(`/api/teacher/exams/${examId}`, {
                 headers: {
-                    "Authorization": `Bearer ${localStorage.getItem('token')}`
-                }
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
             });
+            if (!res.ok) throw new Error("Не удалось загрузить экзамен");
+            const exam = await res.json();
+            const subjectName = await loadSubjectName(exam.subject_id);
+            const groupName = await loadGroupName(exam.group_id);
 
-            if (response.ok) {
-                const tasks = await response.json();
-                tasks.forEach((task, index) => {
-                    addTask(task, index);  // добавление блока с данными
-                });
-            } else {
-                console.warn("Не удалось загрузить задания. Возможно, их ещё нет.");
-            }
-        }
-
-        function loadOptions(index, options = [], correct_option = null) {
-            for (let i = 0; i < options.length; i++) {
-                addOption(index, options[i], i === correct_option);
-            }
-        }
-
-        function addOption(index, value = null, isCorrect = false) {
-            console.log(value);
-            const optionFields = document.getElementById(`option-fields-${index}`);
-            const correctSelect = document.getElementById(`correct_option_${index}`);
-            const fieldCount = optionFields.querySelectorAll(".option-wrapper").length;
-
-            const wrapper = document.createElement("div");
-            wrapper.className = "option-wrapper";
-            wrapper.style.display = "flex";
-            wrapper.style.alignItems = "center";
-            wrapper.style.marginBottom = "4px";
-
-            const optIndex = optionFields.children.length;
-
-            const numberLabel = document.createElement("span");
-            numberLabel.innerText = `${fieldCount + 1}.`;
-            numberLabel.style.marginRight = "5px";
-            wrapper.appendChild(numberLabel);
-
-            const input = document.createElement("input");
-            input.type = "text";
-            input.value = value ? value : "";
-            input.placeholder = `Вариант ${optIndex + 1}`;
-            wrapper.appendChild(input);
-            wrapper.appendChild(document.createElement("br"));
-
-            const removeBtn = document.createElement("span");
-            removeBtn.innerText = "❌";
-            removeBtn.style.cursor = "pointer";
-            removeBtn.style.marginLeft = "8px";
-            removeBtn.onclick = () => {
-                wrapper.remove();
-                correctSelect.querySelector(`option[value="${fieldCount}"]`)?.remove();
-                reindexOptions(index);  // пересчёт номеров
-            };
-            wrapper.appendChild(removeBtn);
-
-            const option = document.createElement("option");
-            option.value = optIndex;
-            option.textContent = `Вариант ${optIndex + 1}`;
-            if (isCorrect) {
-                option.selected = true;
-            }
-
-            optionFields.append(wrapper);
-            correctSelect.appendChild(option);
-        }
-
-        function formatDateRange(start, end) {
-            const options = {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            };
-
-            const startDate = new Date(start).toLocaleString("ru-RU", options);
-            const endDate = new Date(end).toLocaleString("ru-RU", options);
-            return `${startDate} – ${endDate}`;
-        }
-
-        const examId = window.location.pathname.split("/")[3];
-        let taskIndex = 0;
-
-        async function loadSubjectName(id) {
-            const res = await fetch(`/api/admin/subjects/${id}`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-            });
-            const data = await res.json();
-            return data.name;
-        }
-
-        async function loadGroupName(id) {
-            const res = await fetch(`/api/admin/groups/${id}`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-            });
-            const data = await res.json();
-            return data.name;
-        }
-
-        // JS — можно вызвать на window.onload или вручную
-        async function loadExamInfo(examId) {
-            try {
-                const res = await fetch(`/api/teacher/exams/${examId}`, {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("token")}`,
-                    },
-                });
-
-                if (!res.ok) throw new Error("Не удалось загрузить экзамен: " + examId);
-
-                const exam = await res.json();
-
-                const subjectName = await loadSubjectName(exam.subject_id);
-                const groupName = await loadGroupName(exam.group_id);
-                const timeRange = formatDateRange(exam.start_time, exam.end_time);
-
-                document.getElementById("exam-title").innerText = `Экзамен: ${exam.title}`;
-                document.getElementById("exam-details").innerHTML = `
+            document.getElementById("exam-title").innerText = `Экзамен: ${exam.title}`;
+            document.getElementById("exam-details").innerHTML = `
+                <ul>
                     <li><strong>Описание:</strong> ${exam.body}</li>
                     <li><strong>Предмет:</strong> ${subjectName}</li>
                     <li><strong>Группа:</strong> ${groupName}</li>
-                    <li><strong>Время проведения:</strong> ${timeRange}</li>
                     <li><strong>Статус:</strong> ${exam.status}</li>
-                `;
-            } catch (err) {
-                console.error(err);
-                document.getElementById("exam-title").innerText = "Ошибка загрузки экзамена";
+                </ul>`;
+        } catch (err) {
+            console.error(err);
+            document.getElementById("exam-title").innerText = "Ошибка загрузки экзамена";
+        }
+    }
+
+    async function loadTasks() {
+        const res = await fetch(`/api/teacher/tasks/${examId}`, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`
             }
+        });
+        const data = await res.json();
+
+        for (const task of data) {
+            addTask(task);
+        }
+    }
+
+    function addTask(existing = null) {
+        const index = taskIndex++;
+        const taskList = document.getElementById("task-list");
+
+        const taskBlock = document.createElement("div");
+        taskBlock.className = "task-block";
+        taskBlock.style.marginBottom = "30px";
+        taskBlock.dataset.index = index;
+
+        const answerType = existing?.answer_type || "text";
+        const isChoice = answerType === "choice";
+
+        taskBlock.innerHTML = `
+            <input type="text" name="title_${index}" placeholder="Название задания" value="${existing?.title || ''}"><br><br>
+            <textarea name="body_${index}" placeholder="Текст задания" rows="4" style="width: 100%; resize: vertical;">${existing?.body || ''}</textarea><br><br>
+
+            <label>Тип ответа:</label>
+            <select name="answer_type_${index}" onchange="toggleOptions(this, ${index})">
+                <option value="text" ${!isChoice ? 'selected' : ''}>Текст</option>
+                <option value="choice" ${isChoice ? 'selected' : ''}>Выбор</option>
+            </select><br><br>
+
+            <div class="options-block" id="options_${index}" style="display: ${isChoice ? 'block' : 'none'}; margin-bottom: 10px;">
+                <div id="option-fields-${index}"></div>
+                <button onclick="addOption(${index})" type="button">Добавить вариант</button><br><br>
+                <label>Правильный вариант:</label>
+                <select name="correct_option_${index}" id="correct_option_${index}"></select>
+            </div>
+
+            <button onclick="removeTask(this)" type="button" style="color: red;">🗑️ Удалить</button>
+            <hr>
+        `;
+
+        taskList.appendChild(taskBlock);
+
+        // Заполнить варианты, если тип выбора
+        if (isChoice && existing?.options) {
+            for (let i = 0; i < existing.options.length; i++) {
+                addOption(index, existing.options[i]);
+            }
+            document.getElementById(`correct_option_${index}`).value = existing.correct_option;
         }
 
-        window.onload = async () => {
-            const info = await fetch(`/api/teacher/exams/${examId}`, {
-                headers: {
-                    "Authorization": `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-            loadExamInfo(examId);
-            loadTasks(examId);
+        updateSaveAllButton();
+    }
+
+    function toggleOptions(select, index) {
+        const block = document.getElementById(`options_${index}`);
+        block.style.display = (select.value === 'choice') ? 'block' : 'none';
+    }
+
+    function addOption(index, value = "") {
+        const container = document.getElementById(`option-fields-${index}`);
+        const correctSelect = document.getElementById(`correct_option_${index}`);
+        const fieldCount = container.querySelectorAll(".option-wrapper").length;
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "option-wrapper";
+        wrapper.style.display = "flex";
+        wrapper.style.alignItems = "center";
+        wrapper.style.marginBottom = "4px";
+
+        const numberLabel = document.createElement("span");
+        numberLabel.innerText = `${fieldCount + 1}.`;
+        numberLabel.style.marginRight = "5px";
+        wrapper.appendChild(numberLabel);
+
+        const input = document.createElement("input");
+        input.name = `option_${index}_${fieldCount}`;
+        input.placeholder = `Вариант ${fieldCount + 1}`;
+        input.value = value;
+        input.style.flex = "1";
+        wrapper.appendChild(input);
+
+        const removeBtn = document.createElement("span");
+        removeBtn.innerText = "❌";
+        removeBtn.style.cursor = "pointer";
+        removeBtn.style.marginLeft = "8px";
+        removeBtn.onclick = () => {
+            wrapper.remove();
+            reindexOptions(index);
         };
+        wrapper.appendChild(removeBtn);
 
-        function updateSaveAllButton() {
-            const tasks = document.querySelectorAll(".task-block");
-            const saveAllBtn = document.getElementById("save-all-btn");
-            saveAllBtn.disabled = tasks.length === 0;
-        }
+        container.appendChild(wrapper);
 
-        function addTask(task = null, index = null) {
-            const taskList = document.getElementById("task-list");
-            const taskBlock = document.createElement("div");
-            taskBlock.className = "task-block";
-            taskBlock.style.marginBottom = "30px";
-            taskBlock.dataset.index = index ? index : taskIndex;
+        const option = document.createElement("option");
+        option.value = fieldCount;
+        option.innerText = `Вариант ${fieldCount + 1}`;
+        correctSelect.appendChild(option);
+    }
 
-            const title = task ? task.title : "Задание";
-            const body = task ? task.body : "";
-            const answer_type = task ? task.answer_type : "text";
-            const options = task && task.options ? task.options : [];
-            const correct_option = task ? task.correct_option : null;
+    function reindexOptions(index) {
+        const wrappers = document.querySelectorAll(`#option-fields-${index} .option-wrapper`);
+        const correctSelect = document.getElementById(`correct_option_${index}`);
+        correctSelect.innerHTML = "";
+        wrappers.forEach((wrap, i) => {
+            wrap.querySelector("span").innerText = `${i + 1}.`;
+            wrap.querySelector("input").name = `option_${index}_${i}`;
+            wrap.querySelector("input").placeholder = `Вариант ${i + 1}`;
+            const opt = document.createElement("option");
+            opt.value = i;
+            opt.innerText = `Вариант ${i + 1}`;
+            correctSelect.appendChild(opt);
+        });
+    }
 
+    function removeTask(button) {
+        const taskBlock = button.closest(".task-block");
+        taskBlock.remove();
+        updateSaveAllButton();
+    }
 
-            taskBlock.innerHTML = `
-                    <input type="text" name="title_${taskIndex}" placeholder="Название задания" value="${title}"><br><br>
-                    <textarea name="body_${taskIndex}" placeholder="Текст задания" rows="4" style="width: 100%; resize: vertical;">${body}</textarea><br><br>
+    function updateSaveAllButton() {
+        const tasks = document.querySelectorAll(".task-block");
+        document.getElementById("save-all-btn").disabled = tasks.length === 0;
+    }
 
-                    <label>Тип ответа:</label>
-                    <select name="answer_type_${taskIndex}" onchange="toggleOptions(this, ${taskIndex})">
-                        <option value="text" ${answer_type === "text" ? "selected" : ""}>Текст</option>
-                        <option value="choice" ${answer_type === "choice" ? "selected" : ""}>Выбор</option>
-                    </select><br><br>
+    async function submitAllTasks() {
+        const blocks = document.querySelectorAll(".task-block");
+        const tasks = [];
 
-                    <div class="options-block" id="options_${taskIndex}" style="display: ${answer_type === "choice" ? "block" : "none"}; margin-bottom: 10px;">
-                        <div id="option-fields-${taskIndex}"></div>
-                        <button onclick="addOption(${taskIndex})" type="button">Добавить вариант</button><br><br>
-                        <label for="correct_option_${taskIndex}">Правильный вариант:</label>
-                        <select name="correct_option_${taskIndex}" id="correct_option_${taskIndex}"></select>
-                    </div>
+        for (const block of blocks) {
+            const index = block.dataset.index;
+            const title = document.querySelector(`[name="title_${index}"]`).value;
+            const body = document.querySelector(`[name="body_${index}"]`).value;
+            const answer_type = document.querySelector(`[name="answer_type_${index}"]`).value;
 
-                    <button onclick="removeTask(this)" type="button" style="margin-left: 10px; color: red;">🗑️ Удалить</button>
-                    <hr>
-                `;
-
-
-            taskList.appendChild(taskBlock);
+            let task = { title, body, answer_type };
 
             if (answer_type === "choice") {
-                // options.forEach((opt, i) => addOption(taskIndex, opt, i === correct_option));
-                document.getElementById(`options_${taskIndex}`).style.display = "block";
-                loadOptions(taskIndex, options, correct_option)
-            }
-            
-            if (!task) taskIndex++;
-            updateSaveAllButton();
-        }
-
-        function toggleOptions(select, index) {
-            const block = document.getElementById(`options_${index}`);
-            block.style.display = (select.value === 'choice') ? 'block' : 'none';
-        }
-
-
-        function reindexOptions(index) {
-            const wrappers = document.querySelectorAll(`#option-fields-${index} .option-wrapper`);
-            const correctSelect = document.getElementById(`correct_option_${index}`);
-            correctSelect.innerHTML = "";
-            wrappers.forEach((wrap, i) => {
-                wrap.querySelector("span").innerText = `${i + 1}.`;
-                wrap.querySelector("input").name = `option_${index}_${i}`;
-                wrap.querySelector("input").placeholder = `Вариант ${i + 1}`;
-                const opt = document.createElement("option");
-                opt.value = i;
-                opt.innerText = `Вариант ${i + 1}`;
-                correctSelect.appendChild(opt);
-            });
-        }
-
-        function removeTask(button) {
-            const taskBlock = button.closest(".task-block");
-            taskBlock.remove();
-            updateSaveAllButton();
-        }
-
-        async function submitAllTasks() {
-            const blocks = document.querySelectorAll(".task-block");
-            const tasks = [];
-
-            for (const block of blocks) {
-                const index = block.dataset.index;
-
-                const title = document.querySelector(`[name="title_${index}"]`).value;
-                const body = document.querySelector(`[name="body_${index}"]`).value;
-                const answer_type = document.querySelector(`[name="answer_type_${index}"]`).value;
-
-                let task = { title, body, answer_type };
-
-                if (answer_type === "choice") {
-                    const options = Array.from(document.querySelectorAll(`#option-fields-${index} input`))
-                                         .map(el => el.value)
-                                         .filter(v => v.trim() !== "");  // Удалим пустые строки
-
-                    const correct_option_raw = document.querySelector(`[name="correct_option_${index}"]`).value;
-                    const correct_option = parseInt(correct_option_raw);
-
-                    task.options = options;
-                    task.correct_option = correct_option;
-                }
-
-                tasks.push(task);
+                const options = Array.from(document.querySelectorAll(`#option-fields-${index} input`))
+                    .map(el => el.value.trim()).filter(Boolean);
+                const correct_option = parseInt(document.getElementById(`correct_option_${index}`).value);
+                task.options = options;
+                task.correct_option = correct_option;
             }
 
-            if (tasks.length === 0) {
-                alert("Добавьте хотя бы одно задание.");
-                return;
-            }
-
-            const response = await fetch(`/api/teacher/tasks/${examId}/create`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({ tasks })  // ✅ правильная обёртка
-            });
-
-            if (response.ok) {
-                alert("Все задания успешно сохранены!");
-            } else {
-                const err = await response.json();
-                alert("Ошибка: " + JSON.stringify(err));
-            }
+            tasks.push(task);
         }
 
-    </script>
+        const response = await fetch(`/api/teacher/tasks/${examId}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("token")}`
+            },
+            body: JSON.stringify({ tasks })
+        });
+
+        if (response.ok) {
+            alert("Задания успешно обновлены!");
+            location.reload();
+        } else {
+            alert("Ошибка при сохранении заданий.");
+        }
+    }
+
+    window.onload = async () => {
+        await loadExamInfo(examId);
+        await loadTasks();
+    };
+</script>
 
 </body>
 </html>
