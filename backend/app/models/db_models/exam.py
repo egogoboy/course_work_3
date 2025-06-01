@@ -15,7 +15,7 @@ class Exam(Base):
     start_time = Column(DateTime, nullable=False)
     end_time = Column(DateTime, nullable=False)
 
-    status = Column(String, default="not started") # not_started in_progress finished
+    status = Column(String, default="not_started") # not_started in_progress finished
 
     subject = relationship("Subject", back_populates="exams")
     user = relationship("User", back_populates="exams")

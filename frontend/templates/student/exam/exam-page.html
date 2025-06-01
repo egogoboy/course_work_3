@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <link rel="stylesheet" href="/static/css/style.css">
+  <meta charset="UTF-8">
+  <title>Экзамен</title>
+</head>
+<body>
+    <h1 id="exam-title"></h1>
+    <p id="exam-description"></p>
+    <p id="exam-subject"></p>
+    <p id="exam-start-time"></p>
+    <p id="exam-end-time"></p>
+    <div id="time-remaining"></div>
+    <div id="tasks-container"></div>
+    <button id="submit-answers">Отправить ответы</button>
+
+    <script>
+        function formatDate(time) {
+            const options = {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+
+            const result = new Date(time).toLocaleString("ru-RU", options);
+            return result;
+        }
+
+        const examId = parseInt(window.location.pathname.split('/')[3]);  // /student/exams/1/exam_page → 1
+        const tasksContainer = document.getElementById("tasks-container");
+
+        async function loadTasks() {
+            const response = await fetch(`/api/common/tasks/${examId}`);
+            const tasks = await response.json();
+            tasksContainer.innerHTML = "";
+
+            tasks.forEach((task, index) => {
+                const taskDiv = document.createElement("div");
+                taskDiv.className = "task";
+                taskDiv.innerHTML = `
+                    <h3>${task.title}</h3>
+                    <p>${task.body}</p>
+                `;
+
+                if (task.answer_type === "text") {
+                    taskDiv.innerHTML += `
+                        <textarea name="answer_${task.id}" rows="4" style="width: 100%; resize: vertical;"></textarea>
+                    `;
+                } else if (task.answer_type === "choice") {
+                    const options = task.options || [];
+                    options.forEach((opt, i) => {
+                        const optionId = `opt_${task.id}_${i}`;
+                        taskDiv.innerHTML += `
+                            <label>
+                                <input type="checkbox" name="answer_${task.id}" value="${opt}" id="${optionId}">
+                                ${opt}
+                            </label><br>
+                        `;
+                    });
+                }
+
+                tasksContainer.appendChild(taskDiv);
+                tasksContainer.appendChild(document.createElement("hr"));
+            });
+        }
+
+        document.getElementById("submit-answers").addEventListener("click", async () => {
+            const response = await fetch(`/api/common/me`, {
+                headers: {
+                    "Authorization": `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            const user = await response.json();
+
+            console.log(`user_id: ${user.id}`);
+            const answers = [];
+            document.querySelectorAll(".task").forEach(taskDiv => {
+                const taskId = parseInt(taskDiv.querySelector("textarea, input[type=checkbox]").name.split("_")[1]);
+                const textArea = taskDiv.querySelector("textarea");
+                if (textArea) {
+                    answers.push({ 
+                        exam_id: examId, 
+                        task_id: taskId,
+                        user_id: user.id,
+                        answer_text: textArea.value 
+                    });
+                } else {
+                    const checkboxes = taskDiv.querySelectorAll("input[type=checkbox]:checked");
+                    const selected = Array.from(checkboxes).map(cb => cb.value).join(", ");
+
+                    //const selected = Array.from(checkboxes).map(cb => cb.value);
+                    answers.push({ 
+                        exam_id: examId, 
+                        task_id: taskId,
+                        user_id: user.id,
+                        answer_text: selected 
+                    });
+                }
+            });
+
+            const res = await fetch(`/api/student/answers/${examId}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ answers })
+            });
+
+            console.log(JSON.stringify(answers));
+
+            if (res.ok) {
+                alert("Ответы отправлены!");
+            } else {
+                alert("Ошибка при отправке!");
+            }
+        });
+
+        async function loadTasks() {
+            const res = await fetch(`/api/common/tasks/${examId}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`
+                }
+            });
+            const data = await res.json();
+
+            return data;
+        }
+
+        async function loadExam() {
+            const res = await fetch(`/api/common/exams/${examId}`);
+            const exam = await res.json();
+
+            const subjectName = await loadSubjectName(exam.subject_id)
+            const start_time = formatDate(exam.start_time);
+            const end_time = formatDate(exam.end_time);
+
+            document.getElementById("exam-title").textContent = exam.title;
+            document.getElementById("exam-description").textContent = exam.body;
+            document.getElementById("exam-subject").textContent = "Предмет: " + subjectName;
+            document.getElementById("exam-start-time").textContent = `Начало: ${start_time}`;
+            document.getElementById("exam-end-time").textContent = `Конец: ${end_time}`;
+
+            if (exam.status === "not_started") {
+                document.getElementById("time-remaining").textContent = "Экзамен ещё не начался.";
+                return;
+            }
+
+            tasks = await loadTasks();
+
+            if (exam.status === "finished") {
+                document.getElementById("time-remaining").textContent = "Экзамен завершён.";
+                const response = await fetch(`/api/student/answers/${examId}`, {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`
+                    }
+                });
+
+                const answers = await response.json();
+
+                if (!response.ok) {
+                    alert("Ошибка при загрузке ответов!");
+                    window.location.href = document.referrer;
+                }
+
+                showTasksReadonly(tasks, answers);
+                return;
+            }
+
+            console.log(tasks);
+            showTasksEditable(tasks);
+            const end = new Date(exam.end_time);
+            updateTimer(end);
+
+            if (exam.status === "in_progress") {
+                document.getElementById("submit-answers").style.display = "block";
+            } else {
+                document.getElementById("submit-answers").style.display = "none";
+            }
+
+        }
+
+        function showTasksEditable(tasks) {
+            const container = document.getElementById("tasks-container");
+            container.innerHTML = "";
+
+            tasks.forEach(task => {
+                const taskDiv = document.createElement("div");
+                taskDiv.className = "task";
+                taskDiv.innerHTML = `
+                    <h3>${task.title}</h3>
+                    <p>${task.body}</p>
+                `;
+
+                if (task.answer_type === "text") {
+                    taskDiv.innerHTML += `
+                        <textarea name="answer_${task.id}" rows="4" style="width: 100%; resize: vertical;"></textarea>
+                    `;
+                } else if (task.answer_type === "choice") {
+                    const options = task.options || [];
+                    options.forEach((opt, i) => {
+                        const optionId = `opt_${task.id}_${i}`;
+                        taskDiv.innerHTML += `
+                            <label>
+                                <input type="checkbox" name="answer_${task.id}" value="${opt}" id="${optionId}">
+                                ${opt}
+                            </label><br>
+                        `;
+                    });
+                }
+
+                container.appendChild(taskDiv);
+                container.appendChild(document.createElement("hr"));
+            });
+        }
+
+        function showTasksReadonly(tasks, answers) {
+            const container = document.getElementById("tasks-container");
+            container.innerHTML = "";
+
+            tasks.forEach(task => {
+                const taskDiv = document.createElement("div");
+                taskDiv.className = "task";
+                taskDiv.innerHTML = `
+                    <h3>${task.title}</h3>
+                    <p>${task.body}</p>
+                `;
+
+                const answer = answers.find(ans => ans.task_id === task.id);
+                const value = answer ? answer.value || answer.answer_text : null;
+
+                if (task.answer_type === "text") {
+                    taskDiv.innerHTML += `
+                        <div><strong>Ваш ответ:</strong> ${value || "нет ответа"}</div>
+                    `;
+                } else if (task.answer_type === "choice") {
+                    const selected = Array.isArray(value) ? value : (value ? value.split(";") : []);
+                    const options = task.options || [];
+
+                    options.forEach(opt => {
+                        const checked = selected.includes(opt);
+                        taskDiv.innerHTML += `
+                            <label>
+                                <input type="checkbox" disabled ${checked ? "checked" : ""}>
+                                ${opt}
+                            </label><br>
+                        `;
+                    });
+
+                    if (!selected.length) {
+                        taskDiv.innerHTML += `<div><em>Ответ не выбран</em></div>`;
+                    }
+                }
+
+                container.appendChild(taskDiv);
+                container.appendChild(document.createElement("hr"));
+            });
+
+            document.getElementById("submit-answers").style.display = "none"; // скрыть кнопку
+        }
+
+        function updateTimer(endTime) {
+          const timerEl = document.getElementById("time-remaining");
+          setInterval(() => {
+            const now = new Date();
+            const diff = endTime - now;
+            if (diff <= 0) {
+              timerEl.textContent = "Экзамен завершён.";
+            } else {
+              const minutes = Math.floor(diff / 60000);
+              const seconds = Math.floor((diff % 60000) / 1000);
+              timerEl.textContent = `До окончания осталось: ${minutes}м ${seconds}с`;
+            }
+          }, 1000);
+        }
+
+        async function submitAnswers() {
+          const tasks = document.querySelectorAll("#tasks > div");
+          const answers = [];
+
+          tasks.forEach(div => {
+            const taskId = parseInt(div.querySelector("textarea, input").name.split("-")[1]);
+            const inputs = div.querySelectorAll("textarea, input:checked");
+            const values = Array.from(inputs).map(i => i.value).join(";");
+            answers.push({ exam_id: parseInt(examId), task_id: taskId, answer_text: values });
+          });
+
+          await fetch("/api/student/answers", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(answers)
+          });
+
+          alert("Ответы отправлены!");
+        }
+
+
+        async function loadSubjectName(id) {
+            const res = await fetch(`/api/common/subjects/${id}`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+            });
+            const data = await res.json();
+            return data.name;
+        }
+
+        loadExam();
+        // loadTasks();
+    </script>
+</body>
+</html>

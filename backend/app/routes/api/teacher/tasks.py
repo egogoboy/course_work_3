@@ -18,17 +18,6 @@ async def create_task_endpoint(exam_id: int,
     return await add_tasks(exam_id, data, db)
 
 
-@router.get("/{exam_id}",
-            response_model=list[TaskOut],
-            dependencies=[Depends(teacher_only)])
-async def get_exam_tasks_endpoint(exam_id: int,
-                         db: Session = Depends(get_db)):
-    
-    tasks = await get_exam_tasks(exam_id, db)
-
-    return list(TaskOut.model_validate(task) for task in tasks)
-
-
 @router.delete("/{task_id}",
             response_model=TaskOut,
             dependencies=[Depends(teacher_only)])

@@ -11,6 +11,7 @@ from utils.exceptions.auth import InvalidCredentialsException
 from utils.exceptions.user import UserAlreadyExistsException
 from models.schemas.user import UserCreate, UserLogin
 from models.db_models.user import User
+from models.db_models.group import Group
 from models.schemas.schemas import TokenResponse
 from sequrity.config import SECRET_KEY, ALGORITHM
 
@@ -54,6 +55,11 @@ def create_user(user_data: UserCreate, db: Session):
         role=user_data.role
     )
 
+    if user_data.role == "student":
+        if not user_data.group_id or not db.query(Group).filter(Group.id == user_data.group_id).first():
+            raise InvalidCredentialsException
+        new_user.group_id = user_data.group_id
+
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
@@ -64,7 +70,7 @@ def create_user(user_data: UserCreate, db: Session):
     return TokenResponse(
         access_token=token,
         token_type="bearer",
-        role=new_user.role
+        role=user_data.role
     )
 
 
@@ -75,7 +81,11 @@ def authenticate_user(user_data: UserLogin, db: Session):
     if not user or not verify_password(user_data.password, user.hashed_password):
         raise InvalidCredentialsException
 
-    token = create_access_token(data={"sub": user.username, "role": user.role})
+    if user.role == "student":
+        token = create_access_token(data={"sub": user.username, "role": user.role, "group_id": user.group_id})
+    else:
+        token = create_access_token(data={"sub": user.username, "role": user.role})
+
     return TokenResponse(
         access_token=token,
         token_type="bearer",

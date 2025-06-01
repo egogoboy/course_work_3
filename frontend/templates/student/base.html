@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Dashboard</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        nav {
+            background-color: #333;
+            padding: 10px;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        .submenu {
+            display: none;
+            position: absolute;
+            background-color: #444;
+            margin-top: 5px;
+            border-radius: 5px;
+            z-index: 1;
+        }
+        .submenu a {
+            display: block;
+            padding: 5px 10px;
+            color: white;
+        }
+        .submenu a:hover {
+            background-color: #555;
+        }
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/student">Главная</a>
+        <a href="/student/profile">Профиль</a>
+        <div class="dropdown">
+            <a href="#" onclick="toggleSubmenu(event)">Экзамены</a>
+            <div class="submenu" id="exam-submenu">
+                <a href="/student/exams?status=all">Все</a>
+                <a href="/student/exams?status=not_started">Предстоящие</a>
+                <a href="/student/exams?status=in_progress">Текущие</a>
+                <a href="/student/exams?status=finished">Завершённые</a>
+            </div>
+        </div>
+    </nav>
+    <hr>
+    {% block content %}{% endblock %}
+
+    <script>
+        function toggleSubmenu(event) {
+            event.preventDefault();
+            const submenu = document.getElementById('exam-submenu');
+            submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
+        }
+
+        document.addEventListener('click', function(event) {
+            const submenu = document.getElementById('exam-submenu');
+            if (!event.target.closest('.dropdown')) {
+                submenu.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

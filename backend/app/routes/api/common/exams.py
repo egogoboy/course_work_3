@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from crud.exam import get_current_exam
 from models.db_models.exam import Exam
 from models.schemas.exam import ExamOut
-from sequrity.rbac import get_current_user
+from sequrity.rbac import get_current_user, all_users
 from sequrity.auth import get_db
 
 router = APIRouter()
@@ -20,3 +21,10 @@ async def get_exams(db: Session = Depends(get_db),
         exams = db.query(Exam).all()
 
     return (ExamOut.model_validate(exam) for exam in exams)
+
+
+@router.get("/{exam_id}", 
+            dependencies=[Depends(all_users)])
+async def get_current_exams_endpoint(exam_id: int,
+                                      db: Session = Depends(get_db)):
+    return await get_current_exam(exam_id, db)

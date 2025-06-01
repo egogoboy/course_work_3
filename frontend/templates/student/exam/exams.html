@@ -1,0 +1,83 @@
+{% extends "student/base.html" %}
+
+{% block content %}
+<h2 id="title">Экзамены</h2>
+<div id="exam-list">Загрузка...</div>
+
+<script>
+    const token = localStorage.getItem("access_token");
+
+    function loadGroups() {
+        const params = new URLSearchParams(window.location.search);
+        const status = params.get("status");
+        const tdTitle = document.getElementById("title");
+        switch (status) {
+            case "all":
+                tdTitle.innerText = "Экзамены";
+                break;
+            case "not_started":
+                tdTitle.innerText = "Предстоящие экзамены";
+                break;
+            case "in_progress":
+                tdTitle.innerText = "Текущие экзамены";
+                break;
+            case "finished":
+                tdTitle.innerText = "Завершённые экзамены";
+                break;
+        }
+
+        fetch(`/api/student/exams?${params.toString()}`, {
+            method: "GET",
+            credentials: "include"
+        })
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById("exam-list");
+            container.innerHTML = "";
+
+            if (data.length === 0) {
+                container.innerText = "Нет экзаменов.";
+                return;
+            }
+
+            const table = document.createElement("table");
+            data.forEach(exam => {
+                const row = document.createElement("tr");
+
+                const tdInfo = document.createElement("td");
+                tdInfo.innerText = exam.title;
+                row.appendChild(tdInfo);
+
+                const tdStatus = document.createElement("td");
+                switch (exam.status) {
+                    case "not_started":
+                        tdStatus.innerText = "Не начался";
+                        tdStatus.style.color = "black";
+                        break;
+                    case "in_progress":
+                        tdStatus.innerText = "Идёт";
+                        tdStatus.style.color = "green";
+                        break;
+                    case "finished":
+                        tdStatus.innerText = "Закончился";
+                        tdStatus.style.color = "red";
+                        break;
+                }
+                row.appendChild(tdStatus);
+
+                const tdExamPage = document.createElement("td");
+                const editTasksBtn = document.createElement("button");
+                editTasksBtn.innerText = "Страница экзамена";
+                editTasksBtn.onclick = () => location.href = `/student/exams/${exam.id}/exam_page`;
+                tdExamPage.appendChild(editTasksBtn);
+                row.appendChild(tdExamPage);
+
+                table.appendChild(row);
+            });
+            container.appendChild(table);
+        });
+    }
+
+    loadGroups();
+</script>
+{% endblock %}

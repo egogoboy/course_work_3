@@ -53,7 +53,7 @@
 
     async function loadExamInfo(examId) {
         try {
-            const res = await fetch(`/api/teacher/exams/${examId}`, {
+            const res = await fetch(`/api/common/exams/${examId}`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`,
                 },

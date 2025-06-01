@@ -4,7 +4,9 @@ from sequrity.auth import get_password_hash
 from utils.exceptions.user import UserNotFoundException
 from models.db_models.user import User
 from models.schemas.user import UserOut, UserUpdate
+from utils.log import MessageLogger, consoleLog
 
+@MessageLogger
 async def update_user(user_id: int, 
                 update_data: UserUpdate, 
                 db: Session):
@@ -15,7 +17,6 @@ async def update_user(user_id: int,
         raise UserNotFoundException
 
     update_dict = update_data.model_dump(exclude_unset=True)
-    print(update_dict)
 
     if "password" in update_dict:
         raw_password = update_dict.pop("password")
@@ -26,6 +27,9 @@ async def update_user(user_id: int,
 
     db.commit()
     db.refresh(user)
+
+    consoleLog(f"User {user_id} has been updated succesfully")
+    consoleLog(f"New data: {update_dict}")
 
     return UserOut.model_validate(user)
 

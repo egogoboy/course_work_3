@@ -32,7 +32,6 @@
           });
 
           if (response.ok) {
-              alert("Логин прошёл успешно, попытка получить данные пользователя")
               // Теперь запросим данные пользователя, токен уже в cookie, не нужен заголовок
               const userResponse = await fetch("/api/common/me", {
                   credentials: "include"  // Отправляем куки с запросом

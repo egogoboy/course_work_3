@@ -58,7 +58,7 @@
 
         async function loadExamData() {
             try {
-                const res = await fetch(`/api/teacher/exams/${examId}`, {
+                const res = await fetch(`/api/common/exams/${examId}`, {
                     credentials: "include"
                 });
                 const exam = await res.json();
