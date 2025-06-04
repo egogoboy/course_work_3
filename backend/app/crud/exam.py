@@ -1,8 +1,10 @@
 from datetime import datetime
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, Query
+from models.db_models.user import User
 from models.db_models.task import Task
 from utils.exceptions.exam import ExamNotFoundException
 from models.schemas.exam import ExamCreate, ExamOut
+from models.schemas.user import UserOut
 from models.db_models.exam import Exam
 
 
@@ -43,28 +45,23 @@ async def get_current_exam(exam_id: int,
     return ExamOut.model_validate(exam)
 
 
-async def get_groups_exams(group_id: int,
+async def get_filter_exams(current_user: UserOut,
                            db: Session,
                            status: str = "all"):
-    exams = db.query(Exam).filter(Exam.group_id == group_id)
+    exams = None
+
+    if current_user.role == "student":
+        exams = db.query(Exam).filter(Exam.group_id == current_user.group_id)
+    elif current_user.role == "teacher":
+        exams = db.query(Exam).filter(Exam.user_id == current_user.id)
 
     if exams is None:
         raise ExamNotFoundException
-
-    print("utcnow: ", datetime.utcnow())
-
-    print(exams)
-    print(status)
-    for exam in exams:
-        print(exam.title)
-        print(exam.status)
-        print(exam.start_time)
 
     if status != "all":
         exams = exams.filter(Exam.status == status)
 
     return list(ExamOut.model_validate(exam) for exam in exams)
-
 
 
 async def delete_exam(exam_id: int,
@@ -97,3 +94,15 @@ async def update_exam(id: int,
     db.refresh(current_group)
 
     return ExamOut.model_validate(current_group)
+
+
+async def get_exam_students(exam_id: int,
+                        db: Session):
+    exam = db.query(Exam).filter(Exam.id == exam_id).first()
+
+    if not exam:
+        raise ExamNotFoundException
+
+    users = db.query(User).filter(User.group_id == exam.group_id).all()
+
+    return list(UserOut.model_validate(user) for user in users)

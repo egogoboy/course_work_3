@@ -91,12 +91,12 @@
                     const checkboxes = taskDiv.querySelectorAll("input[type=checkbox]:checked");
                     const selected = Array.from(checkboxes).map(cb => cb.value).join(", ");
 
-                    //const selected = Array.from(checkboxes).map(cb => cb.value);
                     answers.push({ 
                         exam_id: examId, 
                         task_id: taskId,
                         user_id: user.id,
-                        answer_text: selected 
+                        answer_text: selected,
+                        valid: "not checked"
                     });
                 }
             });
@@ -112,7 +112,7 @@
             if (res.ok) {
                 alert("Ответы отправлены!");
             } else {
-                alert("Ошибка при отправке!");
+                alert("Ошибка при отправке!" + err.what());
             }
         });
 

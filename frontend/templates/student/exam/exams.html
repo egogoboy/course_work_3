@@ -7,26 +7,26 @@
 <script>
     const token = localStorage.getItem("access_token");
 
-    function loadGroups() {
-        const params = new URLSearchParams(window.location.search);
-        const status = params.get("status");
-        const tdTitle = document.getElementById("title");
-        switch (status) {
-            case "all":
-                tdTitle.innerText = "Экзамены";
-                break;
-            case "not_started":
-                tdTitle.innerText = "Предстоящие экзамены";
-                break;
-            case "in_progress":
-                tdTitle.innerText = "Текущие экзамены";
-                break;
-            case "finished":
-                tdTitle.innerText = "Завершённые экзамены";
-                break;
-        }
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get("status");
+    const tdTitle = document.getElementById("title");
+    switch (status) {
+        case "all":
+            tdTitle.innerText = "Экзамены";
+            break;
+        case "not_started":
+            tdTitle.innerText = "Предстоящие экзамены";
+            break;
+        case "in_progress":
+            tdTitle.innerText = "Текущие экзамены";
+            break;
+        case "finished":
+            tdTitle.innerText = "Завершённые экзамены";
+            break;
+    }
 
-        fetch(`/api/student/exams?${params.toString()}`, {
+    function loadExams() {
+        fetch(`/api/common/exams?${params.toString()}`, {
             method: "GET",
             credentials: "include"
         })
@@ -78,6 +78,6 @@
         });
     }
 
-    loadGroups();
+    loadExams();
 </script>
 {% endblock %}

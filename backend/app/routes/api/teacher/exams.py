@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from models.db_models.exam import Exam
-from crud.exam import create_exam, get_all_exams, delete_exam, update_exam
+from crud.exam import create_exam, get_all_exams, delete_exam, get_exam_students, update_exam
 from models.schemas.exam import ExamCreate
 from sequrity.auth import get_db
 from sequrity.rbac import get_current_user, teacher_only, admin_and_teacher
@@ -30,7 +30,8 @@ async def delete_exam_endpoint(exam_id: int,
 
 @router.get("/", 
             dependencies=[Depends(admin_and_teacher)])
-async def get_all_exams_endpoint(db: Session = Depends(get_db)):
+async def get_all_exams_endpoint(status: str = "all",
+                                 db: Session = Depends(get_db)):
     return await get_all_exams(db)
 
 
@@ -48,3 +49,11 @@ def fix_exam_status(db: Session = Depends(get_db)):
         .update({Exam.status: "not_started"}, synchronize_session=False)
     db.commit()
     return {"updated": updated_count}
+
+
+@router.get("/{exam_id}/users",
+            dependencies=[Depends(admin_and_teacher)])
+async def get_exam_students_endpoint(exam_id: int,
+                                     db: Session = Depends(get_db)):
+    print(await get_exam_students(exam_id, db))
+    return await get_exam_students(exam_id, db)

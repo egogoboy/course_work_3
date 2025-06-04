@@ -1,5 +1,11 @@
+from enum import Enum
 from typing import List
 from pydantic import BaseModel
+
+class ValidTypeEnum(str, Enum):
+    not_checked = "not checked"
+    valid = "valid"
+    not_valid = "not valid"
 
 class AnswerBase(BaseModel):
     exam_id: int
@@ -11,9 +17,9 @@ class AnswerCreate(AnswerBase):
     user_id: int
 
 
-class AnswerOut(AnswerBase):
+class AnswerOut(AnswerCreate):
     id: int
-    user_id: int
+    valid: str
 
     class Config:
         orm_mode = True

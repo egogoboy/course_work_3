@@ -45,7 +45,7 @@ def delete_user_endpoint(user_id: int,
     return user
 
 
-@router.post("/create", 
+@router.post("/create",
              dependencies=[Depends(admin_only)])
 async def register_user_endpoint(user: UserCreate, 
                    db: Session = Depends(get_db)):

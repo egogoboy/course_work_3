@@ -6,6 +6,17 @@ from utils.exceptions.exam import ExamNotFoundException
 from sqlalchemy.orm import Session
 import json
 
+
+async def get_task_from_db(task_id: int,
+                           db: Session):
+    task = db.query(Task).filter(Task.id == task_id).first()
+
+    if not task:
+        raise TaskNotFoundException
+
+    return task
+
+
 async def create_task(task_data: TaskCreate, db: Session):
     task = Task(
         title=task_data.title,
@@ -49,6 +60,20 @@ async def add_tasks(in_exam_id: int,
     return {"detail": f"{len(data.tasks)} заданий добавлено."}
 
 
+async def get_current_task(task_id: int,
+                           db: Session):
+    task = await get_task_from_db(task_id, db)
+
+    return TaskOut.model_validate(task)
+
+
+async def get_current_task_answer(task_id: int,
+                           db: Session):
+    task = await get_task_from_db(task_id, db)
+
+    return task.get_correct_answer_text()
+
+
 async def get_exam_tasks(exam_id: int,
                          db: Session):
     existing_exam = db.query(Exam).filter(Exam.id == exam_id).first()
@@ -62,10 +87,7 @@ async def get_exam_tasks(exam_id: int,
 async def delete_task(task_id: int,
                       db: Session):
 
-    task = db.query(Task).filter(Task.id == task_id).first()
-
-    if not task:
-        raise TaskNotFoundException
+    task = await get_task_from_db(task_id, db)
 
     db.delete(task)
     db.commit()

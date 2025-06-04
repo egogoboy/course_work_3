@@ -1,0 +1,76 @@
+{% extends "teacher/base.html" %}
+
+{% block content %}
+<title>Результаты</title>
+<h2 id = "title"></h2>
+<div id="user-list">Загрузка...</div>
+
+<script>
+    const token = localStorage.getItem("access_token");
+    const examId = parseInt(window.location.pathname.split('/')[3]);
+
+    async function loadExamData() {
+        const tdTitle = document.getElementById("title");
+        try {
+            const response = await fetch(`/api/common/exams/${examId}`, {
+                credentials: "include" 
+            });
+            const exam = await response.json();
+
+            tdTitle.innerText = `Результаты экзамена \"${exam.title}\"`;
+        } catch (err) {
+            alert(`Не удалось загрузить экзамен.`);
+            console.log(err.what());
+        }
+    }
+
+    async function loadStudents(examId) {
+        try {
+            const response = await fetch(`/api/teacher/exams/${examId}/users`, { 
+                method: "GET",
+                credentials: "include" 
+            })
+
+            const users = await response.json();
+
+            const container = document.getElementById("user-list");
+            container.innerHTML = "";
+
+            if (users.length === 0) {
+                container.innerText = "Нет студентов.";
+                return;
+            }
+
+            const table = document.createElement("table");
+            users.forEach(user => {
+                const row = document.createElement("tr");
+
+                const tdInfo = document.createElement("td");
+                tdInfo.innerText = user.username;
+                row.appendChild(tdInfo);
+                table.appendChild(row);
+
+                const tdResults = document.createElement("td");
+                const btn = document.createElement("button");
+                btn.innerText = "Результаты";
+                btn.onclick = () => {
+                    location.href = `/teacher/exams/${examId}/results/${user.id}`;
+                };
+                tdResults.appendChild(btn);
+                row.appendChild(tdResults);
+                table.appendChild(row);
+            });
+
+            container.appendChild(table);
+
+        } catch (err) {
+            return;
+        }
+    }
+
+    
+    loadExamData();
+    loadStudents(examId);
+</script>
+
+{% endblock %}

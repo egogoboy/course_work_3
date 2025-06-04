@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <link rel="stylesheet" href="/static/css/style.css">
+  <meta charset="UTF-8">
+  <title>Результаты экзамена</title>
+</head>
+<body>
+    <h1 id="exam-title"></h1>
+    <p id="exam-description"></p>
+    <p id="exam-subject"></p>
+    <p id="exam-start-time"></p>
+    <p id="exam-end-time"></p>
+    <div id="tasks-container"></div>
+
+    <div id="mark-section" style="margin-top: 30px; padding: 15px; border-top: 1px solid #ccc;">
+      <h3>Внести оценку за экзамен (%)</h3>
+      <input type="number" id="mark-input" min="0" max="100" step="1" placeholder="Введите оценку от 0 до 100" style="width: 250px;">
+      <p id="mark-message" style="color: green; display: none; margin-top: 10px;"></p>
+    </div>
+
+    <button id="submit-results">Сохранить результаты</button>
+
+    <script>
+        function formatDate(time) {
+            const options = {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+
+            const result = new Date(time).toLocaleString("ru-RU", options);
+            return result;
+        }
+
+        const examId = parseInt(window.location.pathname.split('/')[3]);
+        const userId = parseInt(window.location.pathname.split('/')[5]);
+        const tasksContainer = document.getElementById("tasks-container");
+        answers = null;
+        mark_exist = false;
+
+        document.getElementById("submit-results").addEventListener("click", async () => {
+            const taskDivs = document.querySelectorAll(".task");
+
+            for (const taskDiv of taskDivs) {
+                const taskId = parseInt(taskDiv.dataset.taskId);
+                const correctText = taskDiv.querySelector("div[style*='font-weight']");
+                const is_valid = correctText?.dataset.valid === "true";
+                const task = tasks
+
+                const answer = answers.find(ans => ans.task_id === taskId);
+
+                console.log("taskId = ", taskId, typeof taskId);
+                console.log("answers = ", answers.map(a => [a.task_id, typeof a.task_id]));
+
+                console.log(answers);
+                if (answer) {
+                    answer.valid = is_valid;
+                    console.log(JSON.stringify(answer));
+                    console.log(is_valid);
+
+                    const res = await fetch(`/api/teacher/answers/${answer.id}?correct=${is_valid}`, {
+                        method: "PATCH",
+                        headers: {
+                            "Authorization": `Bearer ${localStorage.getItem('token')}`,
+                            "Content-Type": "application/json"
+                        }
+                    });
+
+                    if (!res.ok) {
+                        alert(`Ошибка при отправке ответа на вопрос ${taskId}`);
+                    }
+                }
+            }
+
+            const markInput = document.getElementById("mark-input");
+            const markMessage = document.getElementById("mark-message");
+
+            let mark = {
+                exam_id: examId,
+                student_id: userId,
+                mark: parseInt(markInput.value)
+            };
+
+            console.log(mark);
+
+            if (isNaN(mark.mark) || mark < 0 || mark > 100) {
+                alert("Пожалуйста, введите в поле оценки корректное число от 0 до 100.");
+                return;
+            }
+
+            try {
+                res = null
+                if (!mark_exist) {
+                    res = await fetch(`/api/teacher/marks/`, {
+                        method: "POST",
+                        headers: {
+                              "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                              "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(mark)
+                    });
+                } else {
+                    res = await fetch(`/api/teacher/marks/`, {
+                        method: "PATCH",
+                        headers: {
+                              "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                              "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(mark)
+                    });
+                }
+
+              if (res.ok) {
+                markMessage.textContent = "Оценка успешно сохранена!";
+                markMessage.style.display = "block";
+              } else {
+                const errorData = await res.json();
+                alert("Ошибка при сохранении оценки: " + (errorData.detail || res.statusText));
+              }
+            } catch (err) {
+              alert("Ошибка при сохранении оценки: " + err.message);
+            }
+
+            alert("Результаты успешно сохранены!");
+        });
+
+        async function loadMark() {
+            const res = await fetch(`/api/common/marks/?exam_id=${examId}&student_id=${userId}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`
+                }
+            });
+            
+            const mark = await res.json();
+            console.log(mark);
+
+            document.getElementById("mark-input").value = mark.mark;
+
+            mark_exist = true;
+            return;
+        }
+
+        async function loadTasks() {
+            const res = await fetch(`/api/common/tasks/${examId}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`
+                }
+            });
+            const data = await res.json();
+
+            return data;
+        }
+
+        async function loadExam() {
+            const res = await fetch(`/api/common/exams/${examId}`);
+            const exam = await res.json();
+
+            const subjectName = await loadSubjectName(exam.subject_id)
+            const start_time = formatDate(exam.start_time);
+            const end_time = formatDate(exam.end_time);
+
+            document.getElementById("exam-title").textContent = exam.title;
+            document.getElementById("exam-description").textContent = exam.body;
+            document.getElementById("exam-subject").textContent = "Предмет: " + subjectName;
+            document.getElementById("exam-start-time").textContent = `Начало: ${start_time}`;
+            document.getElementById("exam-end-time").textContent = `Конец: ${end_time}`;
+
+            tasks = await loadTasks();
+
+            const response = await fetch(`/api/teacher/results/${examId}/${userId}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`
+                }
+            });
+
+            answers = await response.json();
+
+            if (!response.ok) {
+                alert("Ошибка при загрузке ответов!");
+                window.location.href = document.referrer;
+            }
+
+            showTasksReadonly(tasks);
+            loadMark();
+
+            return;
+        }
+
+        function showTasksReadonly(tasks) {
+            const container = document.getElementById("tasks-container");
+            container.innerHTML = "";
+
+            tasks.forEach(task => {
+                const taskDiv = document.createElement("div");
+                taskDiv.className = "task";
+                taskDiv.dataset.taskId = task.id;
+                taskDiv.innerHTML = `
+                    <h3>${task.title}</h3>
+                    <p>${task.body}</p>
+                `;
+
+                const answer = answers.find(ans => ans.task_id === task.id);
+                const value = answer ? answer.value || answer.answer_text : null;
+
+                const correctText = document.createElement("div");
+                correctText.innerText = "Ответ не проверен";
+                correctText.style.marginTop = "10px";
+                correctText.style.fontWeight = "bold";
+                correctText.style.color = "gray";
+
+                console.log(answer.valid)
+
+                switch (answer.valid) {
+                    case "valid":
+                        correctText.innerText = "Ответ верный";
+                        correctText.style.color = "green";
+                        correctText.dataset.valid = "true";
+                        break;
+                    case "not valid":
+                        correctText.innerText = "Ответ неверный";
+                        correctText.style.color = "red";
+                        correctText.dataset.valid = "false";
+                        break;
+                }
+
+                console.log(answer);
+
+                if (task.answer_type === "text") {
+                    taskDiv.innerHTML += `
+                        <div><strong>Ответ студента:</strong> ${value || "нет ответа"}</div>
+                    `;
+                    taskDiv.className = "task";
+
+                    const btnContainer = document.createElement("div");
+                    btnContainer.style.marginTop = "10px";
+                    btnContainer.style.display = "flex";
+                    btnContainer.style.gap = "10px";
+
+                    const correctBtn = document.createElement("button");
+                    correctBtn.innerText = "Верный ответ";
+                    correctBtn.onclick = () => {
+                        correctText.innerText = "Ответ верный";
+                        correctText.style.color = "green";
+                        correctText.dataset.valid = "true";        
+                    };
+
+                    const wrongBtn = document.createElement("button");
+                    wrongBtn.innerText = "Неверный ответ";
+                    wrongBtn.onclick = () => {
+                        correctText.innerText = "Ответ неверный";
+                        correctText.style.color = "red";
+                        correctText.dataset.valid = "false";        
+                    };
+
+                    btnContainer.appendChild(correctBtn);
+                    btnContainer.appendChild(wrongBtn);
+
+                    taskDiv.appendChild(btnContainer);
+
+                } else if (task.answer_type === "choice") {
+                    const selected = Array.isArray(value) ? value : (value ? value.split(";") : []);
+                    const options = task.options || [];
+
+                    options.forEach(opt => {
+                        const checked = selected.includes(opt);
+                        taskDiv.innerHTML += `
+                            <label>
+                                <input type="checkbox" disabled ${checked ? "checked" : ""}>
+                                ${opt}
+                            </label><br>
+                        `;
+                    });
+
+                    if (!selected.length) {
+                        taskDiv.innerHTML += `<div><em>Ответ не выбран</em></div>`;
+                    }
+                }
+
+                taskDiv.appendChild(correctText);
+                tasksContainer.appendChild(taskDiv);
+
+                tasksContainer.appendChild(document.createElement("hr"));
+
+            });
+
+        }
+
+        function updateTimer(endTime) {
+          const timerEl = document.getElementById("time-remaining");
+          setInterval(() => {
+            const now = new Date();
+            const diff = endTime - now;
+            if (diff <= 0) {
+              timerEl.textContent = "Экзамен завершён.";
+            } else {
+              const minutes = Math.floor(diff / 60000);
+              const seconds = Math.floor((diff % 60000) / 1000);
+              timerEl.textContent = `До окончания осталось: ${minutes}м ${seconds}с`;
+            }
+          }, 1000);
+        }
+
+        async function loadSubjectName(id) {
+            const res = await fetch(`/api/common/subjects/${id}`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+            });
+            const data = await res.json();
+            return data.name;
+        }
+
+        loadExam();
+        // loadTasks();
+    </script>
+</body>
+</html>

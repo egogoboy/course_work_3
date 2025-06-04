@@ -21,3 +21,16 @@ class Task(Base):
 
     options = Column(JSONEncodedList, nullable=True, default=list)
     correct_option = Column(Integer, nullable=True)
+
+
+    def get_correct_answer_text(self) -> str | None:
+        if self.answer_type != AnswerTypeEnum.choice:
+            return None
+
+        if not self.options or self.correct_option is None:
+            return None
+
+        try:
+            return self.options[self.correct_option]
+        except IndexError:
+            return None

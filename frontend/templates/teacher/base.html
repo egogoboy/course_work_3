@@ -43,7 +43,10 @@
         <div class="dropdown">
             <a href="#" onclick="toggleSubmenu(event)">Экзамены</a>
             <div class="submenu" id="exam-submenu">
-                <a href="/teacher/exams">Все</a>
+                <a href="/teacher/exams?status=all">Все</a>
+                <a href="/teacher/exams?status=not_started">Предстоящие</a>
+                <a href="/teacher/exams?status=in_progress">Текущие</a>
+                <a href="/teacher/exams?status=finished">Завершённые</a>
                 <a href="/teacher/exams/create">Создать</a>
             </div>
         </div>

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, ForeignKey, Text
+from sqlalchemy import Boolean, Column, Integer, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from database.database import Base
 
@@ -10,6 +10,7 @@ class StudentAnswer(Base):
     task_id = Column(Integer, ForeignKey("tasks.id"), nullable=False)
     
     answer_text = Column(Text, nullable=True)
+    correct = Column(Boolean)
 
     task = relationship("Task")
     student = relationship("User")

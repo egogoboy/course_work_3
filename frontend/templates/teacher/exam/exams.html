@@ -1,15 +1,34 @@
 {% extends "teacher/base.html" %}
 
 {% block content %}
-<h2>Экзамены</h2>
-<button onclick="location.href='/teacher/exams/create'">Создать новый экзамен</button>
+<h2 id = "title"></h2>
 <div id="exam-list">Загрузка...</div>
 
 <script>
     const token = localStorage.getItem("access_token");
 
-    function loadGroups() {
-        fetch("/api/teacher/exams", {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get("status");
+
+    const tdTitle = document.getElementById("title");
+    switch (status) {
+        case "all":
+            tdTitle.innerText = "Экзамены";
+            break;
+        case "not_started":
+            tdTitle.innerText = "Предстоящие экзамены";
+            break;
+        case "in_progress":
+            tdTitle.innerText = "Текущие экзамены";
+            break;
+        case "finished":
+            tdTitle.innerText = "Завершённые экзамены";
+            break;
+    }
+
+    function loadExams() {
+        fetch(`/api/common/exams?${params.toString()}`, {
+            method: "GET",
             credentials: "include"
         })
         .then(res => res.json())
@@ -29,32 +48,62 @@
                 const tdInfo = document.createElement("td");
                 tdInfo.innerText = exam.title;
                 row.appendChild(tdInfo);
+                
+                if (status == "all") {
+                    const tdStatus = document.createElement("td");
+                    switch (exam.status) {
+                        case "not_started":
+                            tdStatus.innerText = "Не начался";
+                            tdStatus.style.color = "black";
+                            break;
+                        case "in_progress":
+                            tdStatus.innerText = "Идёт";
+                            tdStatus.style.color = "green";
+                            break;
+                        case "finished":
+                            tdStatus.innerText = "Закончился";
+                            tdStatus.style.color = "red";
+                            break;
+                    }
+                    row.appendChild(tdStatus);
+                }
+                
+                if (exam.status != "finished") {
+                    const tdEdit = document.createElement("td");
+                    const editBtn = document.createElement("button");
+                    editBtn.innerText = "Редактировать";
+                    editBtn.onclick = () => location.href = `/teacher/exams/edit/${exam.id}`;
+                    tdEdit.appendChild(editBtn);
+                    row.appendChild(tdEdit);
 
-                const tdEdit = document.createElement("td");
-                const editBtn = document.createElement("button");
-                editBtn.innerText = "Редактировать";
-                editBtn.onclick = () => location.href = `/teacher/exams/edit/${exam.id}`;
-                tdEdit.appendChild(editBtn);
-                row.appendChild(tdEdit);
-
-                const tdEditTasks = document.createElement("td");
-                const editTasksBtn = document.createElement("button");
-                editTasksBtn.innerText = "Редактировать задания";
-                editTasksBtn.onclick = () => location.href = `/teacher/tasks/${exam.id}/edit`;
-                tdEditTasks.appendChild(editTasksBtn);
-                row.appendChild(tdEditTasks);
-
-                const tdDelete = document.createElement("td");
-                const delBtn = document.createElement("button");
-                delBtn.innerText = "Удалить";
-                delBtn.onclick = () => {
-                    fetch(`/api/teacher/exams/${exam.id}`, {
-                        method: "DELETE",
-                        credentials: "include"
-                    }).then(() => loadGroups());
-                };
-                tdDelete.appendChild(delBtn);
-                row.appendChild(tdDelete);
+                    const tdEditTasks = document.createElement("td");
+                    const editTasksBtn = document.createElement("button");
+                    editTasksBtn.innerText = "Редактировать задания";
+                    editTasksBtn.onclick = () => location.href = `/teacher/tasks/${exam.id}/edit`;
+                    tdEditTasks.appendChild(editTasksBtn);
+                    row.appendChild(tdEditTasks);
+                } else {
+                    const tdResults = document.createElement("td");
+                    const resultsBtn = document.createElement("button");
+                    resultsBtn.innerText = "Результаты";
+                    resultsBtn.onclick = () => location.href = `/teacher/exams/${exam.id}/results`;
+                    tdResults.appendChild(resultsBtn);
+                    row.appendChild(tdResults);
+                }
+                
+                if (exam.status == "not_started") {
+                    const tdDelete = document.createElement("td");
+                    const delBtn = document.createElement("button");
+                    delBtn.innerText = "Удалить";
+                    delBtn.onclick = () => {
+                        fetch(`/api/teacher/exams/${exam.id}`, {
+                            method: "DELETE",
+                            credentials: "include"
+                        }).then(() => loadExams());
+                    };
+                    tdDelete.appendChild(delBtn);
+                    row.appendChild(tdDelete);
+                }
 
                 table.appendChild(row);
             });
@@ -62,6 +111,6 @@
         });
     }
 
-    loadGroups();
+    loadExams();
 </script>
 {% endblock %}
