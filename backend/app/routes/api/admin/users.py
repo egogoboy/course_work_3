@@ -5,10 +5,10 @@ from sqlalchemy.orm import Session
 from crud.user import update_user
 from models.schemas.user import UserCreate, UserOut, UserUpdate
 from utils.exceptions.user import UserNotFoundException
-from crud.user import get_user_by_id
+from crud.user import get_user_by_id, create_user
 from models.db_models.user import User
-from sequrity.auth import get_db, create_user
-from sequrity.rbac import admin_only
+from security.rbac import admin_only
+from database.database import get_db
 
 
 router = APIRouter()

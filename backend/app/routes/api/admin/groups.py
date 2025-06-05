@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 
 from crud.group import create_group, get_all_groups, delete_group, update_group, get_current_group
 from models.schemas.group import GroupCreate
-from sequrity.auth import get_db
-from sequrity.rbac import admin_only, admin_and_teacher
+from database.database import get_db
+from security.rbac import admin_only, admin_and_teacher
 
 
 router = APIRouter()

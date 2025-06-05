@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 
 from crud.exam import create_exam, delete_exam, get_current_exam, update_exam
 from models.schemas.exam import ExamCreate
-from sequrity.auth import get_db
-from sequrity.rbac import get_current_user, student_only
+from security.auth import get_db
+from security.rbac import get_current_user, student_only
 
 
 router = APIRouter()

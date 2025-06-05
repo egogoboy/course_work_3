@@ -6,25 +6,15 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
-from database.database import SessionLocal
 from utils.exceptions.auth import InvalidCredentialsException
-from utils.exceptions.user import UserAlreadyExistsException
-from models.schemas.user import UserCreate, UserLogin
+from models.schemas.user import UserLogin
 from models.db_models.user import User
-from models.db_models.group import Group
 from models.schemas.schemas import TokenResponse
-from sequrity.config import SECRET_KEY, ALGORITHM
+from security.config import SECRET_KEY, ALGORITHM
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 def verify_password(plain_password, hashed_password):
@@ -43,40 +33,8 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
-def create_user(user_data: UserCreate, db: Session):
-    existing_user = db.query(User).filter(User.username == user_data.username).first()
-    if existing_user:
-        raise UserAlreadyExistsException
-
-    hashed_password = get_password_hash(user_data.password)
-    new_user = User(
-        username=user_data.username,
-        hashed_password=hashed_password,
-        role=user_data.role
-    )
-
-    if user_data.role == "student":
-        if not user_data.group_id or not db.query(Group).filter(Group.id == user_data.group_id).first():
-            raise InvalidCredentialsException
-        new_user.group_id = user_data.group_id
-
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-
-    db.commit()
-
-    token = create_access_token(data={"sub": new_user.username, "role": new_user.role})
-    return TokenResponse(
-        access_token=token,
-        token_type="bearer",
-        role=user_data.role
-    )
-
-
 def authenticate_user(user_data: UserLogin, db: Session):
     user = db.query(User).filter(User.username == user_data.username).first()
-    
 
     if not user or not verify_password(user_data.password, user.hashed_password):
         raise InvalidCredentialsException

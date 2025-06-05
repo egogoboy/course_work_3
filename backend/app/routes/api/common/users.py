@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, Request, Response
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
-from sequrity.auth import authenticate_user, get_db
+from security.auth import authenticate_user
+from database.database import get_db
 from models.schemas.user import UserLogin
 
-from sequrity.rbac import get_current_user
+from security.rbac import get_current_user
 
 
 router = APIRouter()
@@ -13,15 +14,8 @@ router = APIRouter()
 @router.get("/me")
 async def get_current_user_info(request: Request,
                                 current_user=Depends(get_current_user)):
-    # Выведем заголовки запроса
-    print("Headers:", request.headers)
 
-    # Выведем cookie (там может быть токен)
-    print("Cookies:", request.cookies)
-
-    # Выведем, если есть, Authorization header
     auth = request.headers.get("Authorization")
-    print("Authorization header:", auth)
     return current_user
 
 

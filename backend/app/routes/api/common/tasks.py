@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from models.schemas.task import TaskOut
 from crud.task import get_exam_tasks
-from sequrity.auth import get_db
-from sequrity.rbac import all_users
+from database.database import get_db
+from security.rbac import all_users
 
 router = APIRouter()
 

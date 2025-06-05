@@ -4,8 +4,8 @@ from models.schemas.user import UserOut
 from crud.exam import get_current_exam, get_filter_exams
 from models.db_models.exam import Exam
 from models.schemas.exam import ExamOut
-from sequrity.rbac import get_current_user, all_users
-from sequrity.auth import get_db
+from security.rbac import get_current_user, all_users
+from database.database import get_db
 
 router = APIRouter()
 

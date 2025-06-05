@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from crud.answers import add_answers, get_answers
-from sequrity.auth import get_db
-from sequrity.rbac import get_current_user, student_only
+from security.auth import get_db
+from security.rbac import get_current_user, student_only
 from models.schemas.answer import AnswerBulkCreate, AnswerOut
 
 

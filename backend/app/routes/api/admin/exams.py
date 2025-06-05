@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from sequrity.auth import get_db
+from security.auth import get_db
 from crud.exam import delete_exam
 
 router = APIRouter()

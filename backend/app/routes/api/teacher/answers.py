@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from models.schemas.answer import AnswerOut
 from crud.answers import set_correctly
-from sequrity.auth import get_db
-from sequrity.rbac import teacher_only
+from security.auth import get_db
+from security.rbac import teacher_only
 
 
 router = APIRouter(prefix="/answers")

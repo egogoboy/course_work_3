@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 
 from crud.subject import create_subject, get_all_subjects, delete_subject, update_subject
 from models.schemas.subject import SubjectCreate
-from sequrity.auth import get_db
-from sequrity.rbac import admin_only, admin_and_teacher
+from security.auth import get_db
+from security.rbac import admin_only, admin_and_teacher
 
 
 router = APIRouter()

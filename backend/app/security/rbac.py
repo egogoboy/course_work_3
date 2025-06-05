@@ -5,9 +5,9 @@ from jose import JWTError, jwt
 
 from sqlalchemy.orm import Session
 
-from sequrity.auth import get_db
+from database.database import get_db
 from models.db_models.user import User
-from sequrity.config import SECRET_KEY, ALGORITHM
+from security.config import SECRET_KEY, ALGORITHM
 from utils.exceptions.auth import AuthenticationRequiredException
 from utils.exceptions.rbac import NotEnoughRightsException
 

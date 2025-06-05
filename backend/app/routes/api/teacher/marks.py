@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from models.schemas.mark import MarkCreate, MarkUpdate
-from sequrity.auth import get_db
-from sequrity.rbac import teacher_only
+from security.auth import get_db
+from security.rbac import teacher_only
 from crud.mark import get_exam_marks, set_mark, update_mark
 
 
