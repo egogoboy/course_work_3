@@ -1,5 +1,9 @@
 {% extends "teacher/base.html" %}
 
+{% block back_button %}
+    {% include "common/back_button.html" %}
+{% endblock %}
+
 {% block content %}
 <title>Результаты</title>
 <h2 id = "title"></h2>
@@ -24,12 +28,35 @@
         }
     }
 
+    async function loadMarks() {
+        try {
+            const response = await fetch(`/api/teacher/marks/${examId}`, { 
+                method: "GET",
+                credentials: "include" 
+            });
+
+            if (!response.ok) {
+                console.warn(`Не удалось загрузить оценки: ${response.status}`);
+                return null;
+            }
+
+            const marks = await response.json();
+
+            return marks;
+        } catch (err) {
+            console.log(err);
+            return;
+        }
+    }
+
     async function loadStudents(examId) {
         try {
+            const marks = await loadMarks();
+
             const response = await fetch(`/api/teacher/exams/${examId}/users`, { 
                 method: "GET",
                 credentials: "include" 
-            })
+            });
 
             const users = await response.json();
 
@@ -42,13 +69,45 @@
             }
 
             const table = document.createElement("table");
+            table.style.marginTop = "20px";
+
+            // Шапка таблицы
+            const thead = document.createElement("thead");
+            const headRow = document.createElement("tr");
+
+            const thUser = document.createElement("th");
+            thUser.innerText = "Студент";
+            headRow.appendChild(thUser);
+
+            const thMark = document.createElement("th");
+            thMark.innerText = "Оценка";
+            headRow.appendChild(thMark);
+
+            const thActions = document.createElement("th");
+            thActions.innerText = "Действия";
+            headRow.appendChild(thActions);
+
+            thead.appendChild(headRow);
+            table.appendChild(thead);
+
+            const tbody = document.createElement("tbody");
+
             users.forEach(user => {
                 const row = document.createElement("tr");
 
                 const tdInfo = document.createElement("td");
                 tdInfo.innerText = user.username;
                 row.appendChild(tdInfo);
-                table.appendChild(row);
+
+                const tdMark = document.createElement("td");
+                tdMark.innerText = "Нет оценки";
+                if (marks != null) {
+                    const mark = marks.find(mrk => mrk.student_id === user.id);
+                    if (mark != null) {
+                        tdMark.innerText = mark.mark;
+                    }
+                }
+                row.appendChild(tdMark);
 
                 const tdResults = document.createElement("td");
                 const btn = document.createElement("button");
@@ -58,9 +117,11 @@
                 };
                 tdResults.appendChild(btn);
                 row.appendChild(tdResults);
-                table.appendChild(row);
+
+                tbody.appendChild(row);
             });
 
+            table.appendChild(tbody);
             container.appendChild(table);
 
         } catch (err) {

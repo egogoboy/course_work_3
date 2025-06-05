@@ -38,7 +38,6 @@
 
     <div id="task-list"></div>
 
-    <!-- Кнопки внизу -->
     <div style="margin-top: 20px;">
         <button onclick="addTask()" id="add-task-btn">➕ Добавить задание</button>
         <button onclick="submitAllTasks()" id="save-all-btn" style="margin-left: 10px;" disabled>💾 Сохранить все изменения</button>
@@ -64,7 +63,7 @@
         let taskIndex = 0;
 
         async function loadSubjectName(id) {
-            const res = await fetch(`/api/admin/subjects/${id}`, {
+            const res = await fetch(`/api/common/subjects/${id}`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
             });
             const data = await res.json();
@@ -148,7 +147,6 @@
                     <select name="correct_option_${taskIndex}" id="correct_option_${taskIndex}"></select>
                 </div>
 
-                <button onclick="submitTask(${taskIndex})" type="button">💾 Сохранить задание</button>
                 <button onclick="removeTask(this)" type="button" style="margin-left: 10px; color: red;">🗑️ Удалить</button>
                 <hr>
             `;

@@ -6,8 +6,7 @@
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
-
-    <button type="button" id="back-button">Назад</button>
+    {% include "common/back_button.html" %}
 
     <h2>Редактирование пользователя</h2>
     <form id="edit-user-form">
@@ -128,12 +127,6 @@
 
             delay(1000).then(() => window.location.href = document.referrer)
         });
-
-        // Назад
-        document.getElementById("back-button").addEventListener("click", () => {
-            window.location.href = document.referrer || "/admin/users";
-        });
     </script>
-
 </body>
 </html>

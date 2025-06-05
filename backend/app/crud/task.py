@@ -16,6 +16,15 @@ async def get_task_from_db(task_id: int,
 
     return task
 
+async def get_exam_tasks_from_db(exam_id: int,
+                                 db: Session):
+    tasks = db.query(Task).filter(Task.exam_id == exam_id).all()
+
+    if not tasks:
+        raise TaskNotFoundException
+
+    return tasks
+
 
 async def create_task(task_data: TaskCreate, db: Session):
     task = Task(

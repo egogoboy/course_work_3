@@ -6,6 +6,7 @@
   <title>Результаты экзамена</title>
 </head>
 <body>
+    {% include "common/back_button.html" %}
     <h1 id="exam-title"></h1>
     <p id="exam-description"></p>
     <p id="exam-subject"></p>
@@ -84,15 +85,14 @@
                 mark: parseInt(markInput.value)
             };
 
-            console.log(mark);
-
-            if (isNaN(mark.mark) || mark < 0 || mark > 100) {
+            if (isNaN(mark.mark) || mark.mark < 0 || mark.mark > 100) {
                 alert("Пожалуйста, введите в поле оценки корректное число от 0 до 100.");
                 return;
             }
 
             try {
-                res = null
+                res = null;
+                console.log("mark_exist = " + mark_exist);
                 if (!mark_exist) {
                     res = await fetch(`/api/teacher/marks/`, {
                         method: "POST",
@@ -128,14 +128,18 @@
         });
 
         async function loadMark() {
-            const res = await fetch(`/api/common/marks/?exam_id=${examId}&student_id=${userId}`, {
+            const response = await fetch(`/api/common/marks/?exam_id=${examId}&student_id=${userId}`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`
                 }
             });
-            
-            const mark = await res.json();
-            console.log(mark);
+
+            if (!response.ok) {
+                console.warn(`Не удалось загрузить оценки: ${response.status}`);
+                return null;
+            }
+
+            const mark = await response.json();
 
             document.getElementById("mark-input").value = mark.mark;
 
@@ -179,8 +183,7 @@
             answers = await response.json();
 
             if (!response.ok) {
-                alert("Ошибка при загрузке ответов!");
-                window.location.href = document.referrer;
+                console.warn("Ошибка при загрузке ответов!");
             }
 
             showTasksReadonly(tasks);
@@ -268,7 +271,7 @@
                         const checked = selected.includes(opt);
                         taskDiv.innerHTML += `
                             <label>
-                                <input type="checkbox" disabled ${checked ? "checked" : ""}>
+                                <input type="radio" disabled ${checked ? "checked" : ""}>
                                 ${opt}
                             </label><br>
                         `;

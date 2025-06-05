@@ -6,7 +6,7 @@
     <title>Создание группы</title>
 </head>
 <body>
-    <button id="back-button">Назад</button>
+    {% include "common/back_button.html" %}
 
     <h2>Создание группы</h2>
     <form id="create-group-form">
@@ -39,14 +39,6 @@
                 window.location.href = "/admin/groups";  // редирект на список
             } else {
                 alert("Ошибка: " + (data.detail || "не удалось создать группу"));
-            }
-        });
-
-        document.getElementById("back-button").addEventListener("click", () => {
-            if (document.referrer) {
-                window.location.href = document.referrer;
-            } else {
-                window.location.href = "/admin/groups";  // fallback
             }
         });
     </script>

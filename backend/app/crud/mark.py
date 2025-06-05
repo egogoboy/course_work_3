@@ -5,6 +5,16 @@ from models.db_models.mark import Mark
 from utils.exceptions.mark import MarkNotFoundException
 
 
+async def get_exam_marks_from_db(exam_id,
+                                 db: Session):
+    marks = db.query(Mark).filter(Mark.exam_id == exam_id).all()
+
+    if not marks:
+        raise MarkNotFoundException
+
+    return marks
+
+
 async def get_mark_from_db(exam_id: int,
                            student_id: int,
                            db: Session):
@@ -49,3 +59,10 @@ async def get_mark(exam_id: int,
     mark = await get_mark_from_db(exam_id, student_id, db)
 
     return MarkOut.model_validate(mark, from_attributes=True)
+
+
+async def get_exam_marks(exam_id: int,
+                         db: Session):
+    marks = await get_exam_marks_from_db(exam_id, db)
+
+    return list(MarkOut.model_validate(mark) for mark in marks)

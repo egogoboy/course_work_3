@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from crud.task import get_current_task, get_current_task_answer
-from models.db_models.task import AnswerTypeEnum
+from crud.task import get_current_task, get_current_task_answer, get_exam_tasks_from_db
+from models.db_models.task import AnswerTypeEnum, Task
 from models.db_models.exam import Exam
 from models.db_models.answer import Answer
 from models.schemas.answer import AnswerBulkCreate, AnswerOut, ValidTypeEnum
@@ -16,6 +16,27 @@ async def get_answer_from_db(ans_id: int,
         raise AnswerNotFoundException
 
     return answer
+
+
+async def create_empty_answers(exam_id: int,
+                               user_id: int,
+                               db: Session):
+    tasks = await get_exam_tasks_from_db(exam_id, db)
+    
+    for task in tasks:
+        answer = Answer(
+            exam_id=exam_id,
+            user_id=user_id,
+            task_id=task.id,
+            answer_text="",
+            valid="not valid"
+        )
+        db.add(answer)
+    db.commit()
+
+    answers = db.query(Answer).filter(Answer.exam_id == exam_id, Answer.user_id == user_id).all()
+
+    return answers
 
 
 async def add_answers(exam_id: int,
@@ -56,11 +77,8 @@ async def get_answers(exam_id: int,
                       db: Session):
     answers = db.query(Answer).filter(Answer.user_id == user_id).filter(Answer.exam_id == exam_id).all()
 
-    for answer in answers:
-        print(answer.valid)
-
     if not answers:
-        raise AnswerNotFoundException
+        answers = await create_empty_answers(exam_id, user_id, db)
 
     return [AnswerOut.model_validate(answer, from_attributes=True) for answer in answers]
 

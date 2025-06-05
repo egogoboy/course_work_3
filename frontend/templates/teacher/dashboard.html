@@ -1,7 +1,30 @@
-<!-- templates/admin/dashboard.html -->
-{% extends "admin/base.html" %}
+{% extends "teacher/base.html" %}
 
 {% block content %}
-<h2>Добро пожаловать в админ-панель</h2>
-<p>Выберите раздел из меню.</p>
+
+<div style="padding: 20px; background-color: #f9f9f9; border-left: 5px solid #007BFF; border-radius: 8px; max-width: 800px; font-family: sans-serif; margin: auto;">
+<div class="left-border-box">
+    <h2 style="color: #0057a3;">Добро пожаловать!</h2>
+    <p>Вы находитесь на <strong>главной странице</strong> панели преподавателя.</p>
+    <p>Выберите интересующую вкладку меню в верхней части экрана:</p>
+    <ul style="line-height: 1.6;">
+      <li><strong>Все</strong> — посмотреть <u>все созданные вами экзамены</u>, независимо от их статуса.</li>
+      <li><strong>Предстоящие</strong> — экзамены, которые <u>ещё не начались</u>.</li>
+      <li><strong>Текущие</strong> — экзамены, которые <u>проходят прямо сейчас</u>.</li>
+      <li><strong>Завершённые</strong> — экзамены, которые <u>уже завершены</u>.
+        <ul>
+          <li>Вы можете <strong>посмотреть результаты студентов</strong> по каждому экзамену.</li>
+          <li>Также можно <strong>просмотреть ответы конкретного студента</strong>, <strong>проверить</strong> их и <strong>выставить оценку</strong>.</li>
+        </ul>
+      </li>
+      <li><strong>Создать</strong> — создать <u>новый экзамен</u>.
+        <ul>
+          <li>После создания экзамена вам будет предложено <strong>добавить задания</strong> для него.</li>
+        </ul>
+      </li>
+    </ul>
+    <p style="margin-top: 20px;">Если у вас возникли вопросы или проблемы, обратитесь к администратору или разработчику системы.</p>
+</div>
+
+
 {% endblock %}

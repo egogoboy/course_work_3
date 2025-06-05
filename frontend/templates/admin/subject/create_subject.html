@@ -6,7 +6,7 @@
     <title>Создание предмета</title>
 </head>
 <body>
-    <button id="back-button">Назад</button>
+    {% include "common/back_button.html" %}
 
     <h2>Создание предмета</h2>
     <form id="create-subject-form">
@@ -39,14 +39,6 @@
                 window.location.href = "/admin/subjects";  // редирект на список
             } else {
                 alert("Ошибка: " + (data.detail || "не удалось создать предмет"));
-            }
-        });
-
-        document.getElementById("back-button").addEventListener("click", () => {
-            if (document.referrer) {
-                window.location.href = document.referrer;
-            } else {
-                window.location.href = "/admin/subjects";  // fallback
             }
         });
     </script>

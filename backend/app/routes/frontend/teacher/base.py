@@ -12,4 +12,4 @@ router = APIRouter()
             response_class=HTMLResponse,
             dependencies=[Depends(teacher_only)])
 async def dashboard_page(request: Request):
-    return templates.TemplateResponse("teacher/base.html", {"request": request})
+    return templates.TemplateResponse("teacher/dashboard.html", {"request": request})

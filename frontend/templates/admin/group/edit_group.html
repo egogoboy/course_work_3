@@ -6,7 +6,7 @@
     <title>Редактирование группы</title>
 </head>
 <body>
-    <button id="back-button">Назад</button>
+    {% include "common/back_button.html" %}
 
     <h2>Редактирование группы</h2>
     <form id="edit-group-form">
@@ -67,16 +67,6 @@
 
             delay(1000).then(() => window.location.href = document.referrer)
         });
-
-        document.getElementById("back-button").addEventListener("click", () => {
-            if (document.referrer) {
-                window.location.href = document.referrer;
-            } else {
-                window.location.href = "/admin/groups";  // fallback
-            }
-        });
-
     </script>
-
 </body>
 </html>
