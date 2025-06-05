@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Request
 from starlette.responses import HTMLResponse
 
 from core.templates import templates
-from sequrity.rbac import student_only
+from security.rbac import student_only
 
 
 router = APIRouter()

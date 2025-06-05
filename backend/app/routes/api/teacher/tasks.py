@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from models.schemas.task import TaskBulkCreate, TaskOut
-from crud.task import add_tasks, delete_task, get_current_task
-from crud.answers import set_correctly
-from security.auth import get_db
+from crud.task import crudTask
+from database.database import get_db
 from security.rbac import teacher_only
 
 router = APIRouter()
@@ -14,7 +13,7 @@ router = APIRouter()
 async def create_task_endpoint(exam_id: int,
                                data: TaskBulkCreate,
                                db: Session = Depends(get_db)):
-    return await add_tasks(exam_id, data, db)
+    return await crudTask.add_tasks(exam_id, data, db)
 
 
 @router.get("/{task_id}",
@@ -22,7 +21,7 @@ async def create_task_endpoint(exam_id: int,
             dependencies=[Depends(teacher_only)])
 async def get_current_task_endpoint(task_id: int,
                                     db: Session = Depends(get_db)):
-    return await get_current_task(task_id, db)
+    return await crudTask.get_current_task(task_id, db)
 
 
 @router.delete("/{task_id}",
@@ -30,4 +29,4 @@ async def get_current_task_endpoint(task_id: int,
             dependencies=[Depends(teacher_only)])
 async def delete_task_endpoint(task_id: int,
                          db: Session = Depends(get_db)):
-    return await delete_task(task_id, db)
+    return await crudTask.delete_task(task_id, db)

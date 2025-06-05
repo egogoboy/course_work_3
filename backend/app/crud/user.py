@@ -1,57 +1,86 @@
 from sqlalchemy.orm import Session
 
-from security.auth import get_password_hash
+from security.auth import create_access_token, get_password_hash
 from utils.exceptions.user import UserAlreadyExistsException, UserNotFoundException
+from utils.exceptions.auth import InvalidCredentialsException
 from models.db_models.user import User
+from models.db_models.group import Group 
 from models.schemas.user import UserCreate, UserOut, UserUpdate
+from models.schemas.schemas import TokenResponse
 from utils.log import MessageLogger, consoleLog
 
 
-async def is_existing_user(user: UserCreate,
-                           db: Session):
-    user = db.query(User).filter(User.username == user.username).first()
+class crudUser:
+    @staticmethod
+    async def is_existing_user(user: UserCreate,
+                               db: Session):
+        user = db.query(User).filter(User.username == user.username).first()
 
-    return (user is not None)
-
-
-@MessageLogger
-async def update_user(user_id: int, 
-                update_data: UserUpdate, 
-                db: Session):
-
-    user = db.query(User).filter(User.id == user_id).first()
-
-    if not user:
-        raise UserNotFoundException
-
-    update_dict = update_data.model_dump(exclude_unset=True)
-
-    if "password" in update_dict:
-        raw_password = update_dict.pop("password")
-        user.password = get_password_hash(raw_password)
-
-    for field, value in update_dict.items():
-        setattr(user, field, value)
-
-    db.commit()
-    db.refresh(user)
-
-    consoleLog(f"User {user_id} has been updated succesfully")
-    consoleLog(f"New data: {update_dict}")
-
-    return UserOut.model_validate(user)
+        return (user is not None)
 
 
-def get_user_by_id(user_id: int, 
-                   db: Session):
-    return db.query(User).filter(User.id == user_id).first()
+    @staticmethod
+    @MessageLogger
+    async def update_user(user_id: int, 
+                    update_data: UserUpdate, 
+                    db: Session):
+
+        user = db.query(User).filter(User.id == user_id).first()
+
+        if not user:
+            raise UserNotFoundException
+
+        update_dict = update_data.model_dump(exclude_unset=True)
+
+        if "password" in update_dict:
+            raw_password = update_dict.pop("password")
+            user.password = get_password_hash(raw_password)
+
+        for field, value in update_dict.items():
+            setattr(user, field, value)
+
+        db.commit()
+        db.refresh(user)
+
+        consoleLog(f"User {user_id} has been updated succesfully")
+        consoleLog(f"New data: {update_dict}")
+
+        return UserOut.model_validate(user)
 
 
-def create_user(user: UserCreate,
-                db: Session):
-    if is_existing_user(user, db):
-        raise UserAlreadyExistsException
+    @staticmethod
+    def get_user_by_id(user_id: int, 
+                       db: Session):
+        return db.query(User).filter(User.id == user_id).first()
 
-    db_user = User(
-        username=user.username,
-            )
+
+    @staticmethod
+    def create_user(user_data: UserCreate, db: Session):
+        existing_user = db.query(User).filter(User.username == user_data.username).first()
+        if existing_user:
+            raise UserAlreadyExistsException
+
+        hashed_password = get_password_hash(user_data.password)
+        new_user = User(
+            username=user_data.username,
+            hashed_password=hashed_password,
+            role=user_data.role
+        )
+
+        if user_data.role == "student":
+            if not user_data.group_id or not db.query(Group).filter(Group.id == user_data.group_id).first():
+                raise InvalidCredentialsException
+            new_user.group_id = user_data.group_id
+
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+
+        db.commit()
+
+        token = create_access_token(data={"sub": new_user.username, "role": new_user.role})
+        return TokenResponse(
+            access_token=token,
+            token_type="bearer",
+            role=user_data.role
+        )
