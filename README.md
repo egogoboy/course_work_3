@@ -49,6 +49,7 @@ cd course_work_3/backend
 python3 -m venv env
 source env/bin/activate
 pip install -r requirements.txt
+cd app
 python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 Переходим в браузер по URl http::/localhost:8000/login
