@@ -24,7 +24,8 @@ class Answer(Base):
             exam_id = ans_in.exam_id,
             user_id = ans_in.user_id,
             task_id = ans_in.task_id,
-            answer_text = ans_in.answer_text
+            answer_text = ans_in.answer_text,
+            valid = ans_in.valid
         )
 
 

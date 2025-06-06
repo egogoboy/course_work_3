@@ -2,9 +2,7 @@ from sqlalchemy.orm import Session
 
 from security.auth import create_access_token, get_password_hash
 from utils.exceptions.user import UserAlreadyExistsException, UserNotFoundException
-from utils.exceptions.auth import InvalidCredentialsException
 from models.db_models.user import User
-from models.db_models.group import Group 
 from models.schemas.user import UserCreate, UserOut, UserUpdate
 from models.schemas.schemas import TokenResponse
 from utils.log import MessageLogger, consoleLog
@@ -22,13 +20,9 @@ class crudUser:
     @staticmethod
     @MessageLogger
     async def update_user(user_id: int, 
-                    update_data: UserUpdate, 
-                    db: Session):
-
-        user = db.query(User).filter(User.id == user_id).first()
-
-        if not user:
-            raise UserNotFoundException
+                          update_data: UserUpdate, 
+                          db: Session):
+        user = await crudUser._get_user_from_db(user_id, db)
 
         update_dict = update_data.model_dump(exclude_unset=True)
 
@@ -61,21 +55,12 @@ class crudUser:
             raise UserAlreadyExistsException
 
         hashed_password = get_password_hash(user_data.password)
-        new_user = User(
-            username=user_data.username,
-            hashed_password=hashed_password,
-            role=user_data.role
-        )
-
-        if user_data.role == "student":
-            if not user_data.group_id or not db.query(Group).filter(Group.id == user_data.group_id).first():
-                raise InvalidCredentialsException
-            new_user.group_id = user_data.group_id
+        user_data.password = hashed_password
+        new_user = User.from_schemas(user_data)
 
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
-
         db.commit()
 
         token = create_access_token(data={"sub": new_user.username, "role": new_user.role})
@@ -84,3 +69,14 @@ class crudUser:
             token_type="bearer",
             role=user_data.role
         )
+
+
+    @staticmethod
+    async def _get_user_from_db(user_id: int,
+                          db: Session):
+        user = db.query(User).filter(User.id == user_id).first()
+
+        if not user:
+            raise UserNotFoundException
+
+        return user

@@ -13,10 +13,8 @@ class crudSubject:
 
         if existing_subject is not None:
             raise SubjectAlreadyExistsException
-
-        new_subject = Subject(
-            name=subject_data.name
-        )
+        
+        new_subject = Subject.from_schemas(subject_data)
 
         db.add(new_subject)
         db.commit()

@@ -116,6 +116,8 @@
                 alert("Пользователь создан");
                 form.reset();
                 groupContainer.style.display = "none";
+                window.location.href = "/admin/users";  // редирект на список
+
             } else {
                 const err = await res.json();
                 alert("Ошибка: " + (err.detail || "не удалось создать пользователя"));

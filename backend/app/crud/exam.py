@@ -2,32 +2,24 @@ from sqlalchemy.orm import Session
 from models.db_models.user import User
 from models.db_models.task import Task
 from utils.exceptions.exam import ExamNotFoundException
-from models.schemas.exam import ExamCreate, ExamOut
+from models.schemas.exam import ExamCreate, ExamIn, ExamOut
 from models.schemas.user import UserOut
 from models.db_models.exam import Exam
 
 
 class crudExam:
     @staticmethod
-    async def create_exam(exam_data: ExamCreate,
-                    user_id: int,
-                    db: Session):
-        new_exam = Exam(
-            title=exam_data.title,
-            body=exam_data.body,
-            subject_id=exam_data.subject_id,
-            user_id=user_id,
-            group_id=exam_data.group_id,
-            start_time=exam_data.start_time,
-            end_time=exam_data.end_time
-        )
-
+    async def create_exam(exam_data: ExamIn,
+                          user_id: int,
+                          db: Session):
+        exam_create = ExamCreate.from_in(exam_data, user_id)
+        
+        new_exam = Exam.from_schemas(exam_create)
         db.add(new_exam)
         db.commit()
         db.refresh(new_exam)
 
         return ExamOut.model_validate(new_exam)
-
 
 
     @staticmethod

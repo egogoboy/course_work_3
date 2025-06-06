@@ -1,8 +1,10 @@
 from sqlalchemy import Column, Integer, String, Text, ForeignKey, Enum
 from sqlalchemy.orm import relationship
+import enum
+
 from database.database import Base
 from models.types import JSONEncodedList
-import enum
+from models.schemas.task import TaskCreate
 
 class AnswerTypeEnum(enum.Enum):
     text = "text"
@@ -21,6 +23,16 @@ class Task(Base):
 
     options = Column(JSONEncodedList, nullable=True, default=list)
     correct_option = Column(Integer, nullable=True)
+
+
+    @classmethod
+    def from_schemas(cls, task_in: TaskCreate):
+        return cls(
+            title = task_in.title,
+            body = task_in.body,
+            answer_type = task_in.answer_type,
+            exam_id = task_in.exam_id
+        )
 
 
     def get_correct_answer_text(self) -> str | None:

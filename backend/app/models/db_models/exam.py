@@ -2,6 +2,8 @@ from sqlalchemy import Column, DateTime, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from database.database import Base
 
+from models.schemas.exam import ExamCreate
+
 class Exam(Base):
     __tablename__ = "exams"
 
@@ -22,3 +24,16 @@ class Exam(Base):
     tasks = relationship("Task", back_populates="exam", cascade="all, delete-orphan")
 
     group = relationship("Group", back_populates="exams")
+
+
+    @classmethod
+    def from_schemas(cls, exam_in: ExamCreate):
+        return cls(
+            title=exam_in.title,
+            body=exam_in.body,
+            subject_id=exam_in.subject_id,
+            user_id=exam_in.user_id,
+            group_id=exam_in.group_id,
+            start_time=exam_in.start_time,
+            end_time=exam_in.end_time
+        )

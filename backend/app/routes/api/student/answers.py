@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from crud.answers import crudAnswer
 from database.database import get_db
 from security.rbac import get_current_user, student_only
-from models.schemas.answer import AnswerBulkCreate, AnswerOut
+from models.schemas.answer import AnswerBulkIn, AnswerOut
 
 
 router = APIRouter()
@@ -13,7 +13,7 @@ router = APIRouter()
 @router.post("/{exam_id}",
             dependencies=[Depends(student_only)])
 async def put_answers_endpoint(exam_id: int,
-                               answers_data: AnswerBulkCreate,
+                               answers_data: AnswerBulkIn,
                                db: Session = Depends(get_db)):
     return await crudAnswer.add_answers(exam_id, answers_data, db)
 

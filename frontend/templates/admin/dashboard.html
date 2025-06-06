@@ -1,7 +1,19 @@
-<!-- templates/admin/dashboard.html -->
 {% extends "admin/base.html" %}
 
 {% block content %}
-<h2>Добро пожаловать в админ-панель</h2>
-<p>Выберите раздел из меню.</p>
+<div style="padding: 20px; background-color: #f9f9f9; border-left: 5px solid #007BFF; border-radius: 8px; max-width: 800px; font-family: sans-serif; margin: auto;">
+<div class="left-border-box">
+    <h2 style="color: #0057a3;">Добро пожаловать!</h2>
+    <p>Вы находитесь на <strong>главной странице</strong> панели администратора.</p>
+    <p>Выберите интересующую вкладку меню в верхней части экрана:</p>
+    <ul style="line-height: 1.6;">
+      <li><strong>Пользователи</strong> — посмотреть <u>всех пользователей</u>.</li>
+      <li><strong>Группы</strong> — посмотреть <u>все группы</u>.</li>
+      <li><strong>Предметы</strong> — посмотреть <u>все предметы</u>.</li>
+      <li>На каждой странице вы можете <strong>создать, отредактировать или удалить</strong>соответствующий элемент.</li>
+      </li>
+      </li>
+    </ul>
+    <p style="margin-top: 20px;">Если у вас возникли вопросы или проблемы, обратитесь к разработчику системы.</p>
+</div>
 {% endblock %}

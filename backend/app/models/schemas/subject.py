@@ -1,7 +1,10 @@
 from pydantic import BaseModel
 
-class SubjectCreate(BaseModel):
+class SubjectBase(BaseModel):
     name: str
+
+class SubjectCreate(SubjectBase):
+    pass
 
 class SubjectOut(SubjectCreate):
     id: int

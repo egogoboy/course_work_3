@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from crud.task import crudTask
 from models.db_models.exam import Exam
 from models.db_models.answer import Answer
-from models.schemas.answer import AnswerBulkCreate, AnswerOut, ValidTypeEnum
+from models.schemas.answer import AnswerBulkIn, AnswerOut, AnswerCreate, ValidTypeEnum
 from utils.exceptions.exam import ExamNotFoundException
 from utils.exceptions.answer import AnswerNotFoundException
 
@@ -10,7 +10,7 @@ from utils.exceptions.answer import AnswerNotFoundException
 class crudAnswer:
     @staticmethod
     async def add_answers(exam_id: int,
-                          data: AnswerBulkCreate,
+                          data: AnswerBulkIn,
                           db: Session):
         exam = db.query(Exam).filter(Exam.id == exam_id).first()
 
@@ -27,17 +27,12 @@ class crudAnswer:
                 else:
                     valid = ValidTypeEnum.not_valid
 
-            db_ans = Answer(
-                exam_id=exam_id,
-                user_id=answer.user_id,
-                task_id=answer.task_id,
-                answer_text=answer.answer_text,
-                valid=valid.value
-            )
+            answer_create = AnswerCreate.from_in(answer, valid)
+
+            db_ans = Answer.from_schema(answer_create)
             db.add(db_ans) 
 
         db.commit()
-        print("Succesfully added answers")
         return {"detail": f"{len(data.answers)} ответов добавлено."}
 
 
