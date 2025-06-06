@@ -4,6 +4,42 @@
     <link rel="stylesheet" href="/static/css/style.css">
   <meta charset="UTF-8">
   <title>Результаты экзамена</title>
+    <style>
+    .progress-multi-circle {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .progress-multi-circle svg {
+        display: block;
+        margin: 0 auto;
+    }
+
+    .progress-multi-circle .segment {
+        fill: none;
+        stroke-width: 3.8;
+    }
+
+    .segment-green {
+        stroke: #4caf50; /* верные */
+    }
+
+    .segment-red {
+        stroke: #f44336; /* неверные */
+    }
+
+    .segment-gray {
+        stroke: #ccc;    /* непроверенные */
+    }
+
+    .percentage-label {
+        fill: #333;
+        font-size: 10px;
+        text-anchor: middle;
+    }
+    </style>
 </head>
 <body>
     {% include "common/back_button.html" %}
@@ -13,6 +49,28 @@
     <p id="exam-start-time"></p>
     <p id="exam-end-time"></p>
     <div id="tasks-container"></div>
+
+    <div class="progress-multi-circle" id="progress-multi-circle">
+        <h3>Результаты по ответам</h3>
+        <svg viewBox="0 0 36 36" width="120" height="120">
+            <path class="segment segment-green" id="segment-green"
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831
+                     a 15.9155 15.9155 0 0 1 0 -31.831"
+                  stroke-dasharray="0, 100"
+                  transform="rotate(-90 18 18)" />
+            <path class="segment segment-red" id="segment-red"
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831
+                     a 15.9155 15.9155 0 0 1 0 -31.831"
+                  stroke-dasharray="0, 100"
+                  transform="rotate(-90 18 18)" />
+            <path class="segment segment-gray" id="segment-gray"
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831
+                     a 15.9155 15.9155 0 0 1 0 -31.831"
+                  stroke-dasharray="100, 100"
+                  transform="rotate(-90 18 18)" />
+            <text x="18" y="20.35" class="percentage-label" id="percentage-label">0%</text>
+        </svg>
+    </div>
 
     <div id="mark-section" style="margin-top: 30px; padding: 15px; border-top: 1px solid #ccc;">
       <h3>Внести оценку за экзамен (%)</h3>
@@ -41,6 +99,10 @@
         const tasksContainer = document.getElementById("tasks-container");
         answers = null;
         mark_exist = false;
+
+        let correctAnswers = 0;
+        let unCorrectAnswers = 0;
+        let notCheckedAnswers = 0;
 
         document.getElementById("submit-results").addEventListener("click", async () => {
             const taskDivs = document.querySelectorAll(".task");
@@ -181,6 +243,21 @@
             });
 
             answers = await response.json();
+            totalAnswers = answers.length;
+
+            answers.forEach(answer => {
+                switch (answer.valid) {
+                    case "valid":
+                        correctAnswers++;
+                        break;
+                    case "not valid":
+                        unCorrectAnswers++;
+                        break;
+                    case "not checked":
+                        notCheckedAnswers++;
+                        break;
+                }
+            });
 
             if (!response.ok) {
                 console.warn("Ошибка при загрузке ответов!");
@@ -188,6 +265,8 @@
 
             showTasksReadonly(tasks);
             loadMark();
+
+            setMultiProgress(correctAnswers, unCorrectAnswers, notCheckedAnswers);
 
             return;
         }
@@ -247,7 +326,17 @@
                     correctBtn.onclick = () => {
                         correctText.innerText = "Ответ верный";
                         correctText.style.color = "green";
-                        correctText.dataset.valid = "true";        
+                        correctText.dataset.valid = "true";
+                        if (answer.valid != "valid") {
+                            if (answer.valid == "not valid") {
+                                unCorrectAnswers--;
+                            } else if (answer.valid == "not checked") {
+                                notCheckedAnswers--;
+                            }
+                            correctAnswers++;
+                            answer.valid = "valid";
+                        }
+                        setMultiProgress(correctAnswers, unCorrectAnswers, notCheckedAnswers);
                     };
 
                     const wrongBtn = document.createElement("button");
@@ -256,6 +345,16 @@
                         correctText.innerText = "Ответ неверный";
                         correctText.style.color = "red";
                         correctText.dataset.valid = "false";        
+                        if (answer.valid != "not valid") {
+                            if (answer.valid == "valid") {
+                                correctAnswers--;
+                            } else if (answer.valid == "not checked") {
+                                notCheckedAnswers--;
+                            }
+                            unCorrectAnswers++;
+                            answer.valid = "not valid";
+                        }
+                        setMultiProgress(correctAnswers, unCorrectAnswers, notCheckedAnswers);
                     };
 
                     btnContainer.appendChild(correctBtn);
@@ -312,6 +411,34 @@
             });
             const data = await res.json();
             return data.name;
+        }
+
+        function setMultiProgress(validCount, notValidCount, notCheckedCount) {
+            const total = validCount + notValidCount + notCheckedCount;
+            console.log("total: " + total);
+            console.log("valid: " + validCount);
+            console.log("not valid: " + notValidCount);
+            console.log("not checked: " + notCheckedCount);
+            const greenPercent = (validCount / total) * 100;
+            const redPercent = (notValidCount / total) * 100;
+            const grayPercent = (notCheckedCount / total) * 100;
+            console.log("Valid percent: " + greenPercent);
+            console.log("Not valid percent: " + redPercent);
+            console.log("Not checked percent: " + grayPercent);
+
+            const segmentGreen = document.getElementById("segment-green");
+            const segmentRed = document.getElementById("segment-red");
+            const segmentGray = document.getElementById("segment-gray");
+            const label = document.getElementById("percentage-label");
+
+            segmentGreen.setAttribute("stroke-dasharray", `${greenPercent}, 100`);
+            segmentGreen.setAttribute("stroke-dashoffset", `0`);
+            segmentRed.setAttribute("stroke-dasharray", `${redPercent}, 100`);
+            segmentRed.setAttribute("stroke-dashoffset", `-${greenPercent}`);
+            segmentGray.setAttribute("stroke-dasharray", `${grayPercent}, 100`);
+            segmentGray.setAttribute("stroke-dashoffset", `-${greenPercent + redPercent}`);
+
+            label.textContent = `${Math.round(greenPercent)}%`;
         }
 
         loadExam();

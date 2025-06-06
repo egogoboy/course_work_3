@@ -78,8 +78,8 @@ class crudExam:
 
     @staticmethod
     async def update_exam(id: int,
-                   new_group_data: ExamCreate,
-                   db: Session):
+                       new_group_data: ExamIn,
+                       db: Session):
         current_group = db.query(Exam).filter(Exam.id == id).first()
 
         if not current_group:
