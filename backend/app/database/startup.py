@@ -1,5 +1,5 @@
 from database.database import Base, engine
-from models.db_models import user, group, subject, exam, task, group_subject, task
+from models.db_models import user, group, subject, exam, task, task
 
 def init_db():
     print("Creating database...")

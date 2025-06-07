@@ -10,7 +10,6 @@ class Group(Base):
     name = Column(String, unique=True)
 
     users= relationship("User", back_populates="group")
-    subjects = relationship("GroupSubject", back_populates="group")
     exams = relationship("Exam", back_populates="group")
 
     @classmethod

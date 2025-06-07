@@ -16,7 +16,6 @@ class User(Base):
 
     exams = relationship("Exam", back_populates="user")
     group = relationship("Group", back_populates="users")
-    results = relationship("Result", back_populates="user")
 
 
     @classmethod

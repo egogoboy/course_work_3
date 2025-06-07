@@ -10,7 +10,6 @@ class Subject(Base):
     name = Column(String, unique=True)
 
     exams = relationship("Exam", back_populates="subject")
-    group_links = relationship("GroupSubject", back_populates="subject")
 
 
     @classmethod
