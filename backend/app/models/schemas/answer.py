@@ -16,7 +16,6 @@ class AnswerIn(AnswerBase):
     user_id: int
 
 class AnswerCreate(AnswerIn):
-    user_id: int
     valid: ValidTypeEnum = Field(default=ValidTypeEnum.not_checked)
 
     @classmethod
