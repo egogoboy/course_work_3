@@ -54,12 +54,15 @@ python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 Переходим в браузер по URl http::/localhost:8000/login
 ### Доступные пользователи:
-##### admin
+#### admin
 login: admin
+
 password: admin
-##### teacher
+#### teacher
 login: teacher
+
 password: teacher
-##### student
+#### student
 login: student-23
+
 password: student-23
