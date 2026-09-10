@@ -7,3 +7,4 @@ sqlalchemy
 pydantic
 jwt
 jinja2
+bcrypt<5.0.0
