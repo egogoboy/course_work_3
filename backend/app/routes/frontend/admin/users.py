@@ -1,9 +1,7 @@
-from fastapi import APIRouter, Depends, Request
-from starlette.responses import HTMLResponse
-
 from core.templates import templates
+from fastapi import APIRouter, Depends, Request
 from security.rbac import admin_only
-
+from starlette.responses import HTMLResponse
 
 router = APIRouter()
 
@@ -12,14 +10,14 @@ router = APIRouter()
             response_class=HTMLResponse,
             dependencies=[Depends(admin_only)])
 def users_page(request: Request):
-    return templates.TemplateResponse("admin/user/users.html", {"request": request})
+    return templates.TemplateResponse(request, "admin/user/users.html")
 
 
 @router.get("/users/create", 
             response_class=HTMLResponse,
             dependencies=[Depends(admin_only)])
 def user_create_page(request: Request):
-    return templates.TemplateResponse("admin/user/create_user.html", {"request": request})
+    return templates.TemplateResponse(request, "admin/user/create_user.html")
 
 
 @router.get("/users/edit/{user_id}", 
@@ -27,4 +25,4 @@ def user_create_page(request: Request):
             dependencies=[Depends(admin_only)])
 def user_edit_page(user_id: int,
                      request: Request):
-    return templates.TemplateResponse("admin/user/edit_user.html", {"request": request, "user_id": user_id})
+    return templates.TemplateResponse(request, "admin/user/edit_user.html")

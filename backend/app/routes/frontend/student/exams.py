@@ -1,9 +1,7 @@
-from fastapi import APIRouter, Depends, Request
-from starlette.responses import HTMLResponse
-
 from core.templates import templates
+from fastapi import APIRouter, Depends, Request
 from security.rbac import student_only
-
+from starlette.responses import HTMLResponse
 
 router = APIRouter()
 
@@ -13,7 +11,7 @@ router = APIRouter()
             dependencies=[Depends(student_only)])
 def exams_page(request: Request,
                status: str = ""):
-    return templates.TemplateResponse("student/exam/exams.html", {"request": request})
+    return templates.TemplateResponse(request, "student/exam/exams.html")
 
 
 @router.get("/exams/{exam_id}/exam_page", 
@@ -21,4 +19,4 @@ def exams_page(request: Request,
             dependencies=[Depends(student_only)])
 def exam_page(exam_id: int,
               request: Request):
-    return templates.TemplateResponse("student/exam/exam-page.html", {"request": request})
+    return templates.TemplateResponse(request, "student/exam/exam-page.html")

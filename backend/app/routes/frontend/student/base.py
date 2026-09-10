@@ -1,9 +1,7 @@
-from fastapi import APIRouter, Depends, Request
-from starlette.responses import HTMLResponse
-
 from core.templates import templates
+from fastapi import APIRouter, Depends, Request
 from security.rbac import student_only
-
+from starlette.responses import HTMLResponse
 
 router = APIRouter()
 
@@ -12,4 +10,4 @@ router = APIRouter()
             response_class=HTMLResponse,
             dependencies=[Depends(student_only)])
 async def dashboard_page(request: Request):
-    return templates.TemplateResponse("student/dashboard.html", {"request": request})
+    return templates.TemplateResponse(request, "student/dashboard.html")
