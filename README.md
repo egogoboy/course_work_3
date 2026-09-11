@@ -165,13 +165,8 @@ The database schema uses foreign keys and ORM relationships to represent associa
 
 ### Database Diagram
 
-> **TODO:** Add an ER diagram of the database schema here.
+<img width="698" height="595" alt="Screenshot 2026-09-11 at 1 55 51 PM" src="https://github.com/user-attachments/assets/45c60abe-4b40-472c-88a7-cc7a95d466af" />
 
-```text
-[Database ER Diagram]
-
-<!-- Replace this section with the exported dbdiagram.io diagram -->
-```
 
 ## API
 
@@ -236,23 +231,43 @@ course_work_3/
 
 ### Authentication
 
-> **TODO:** Add login page screenshot.
+#### Login Page
 
-### Administrator Dashboard
+<img width="1440" height="900" alt="image" src="https://github.com/user-attachments/assets/29fb3d0a-b384-416e-9210-c9de1441bfa9" />
 
-> **TODO:** Add administrator dashboard screenshot.
+### Administrator Dashboard (Users Administration)
+
+#### Users Administration
+
+<img width="1440" height="900" alt="image" src="https://github.com/user-attachments/assets/57fc29ed-a602-49b5-8bd3-459448dbf253" />
 
 ### Examination Management
 
-> **TODO:** Add instructor examination management screenshot.
+#### Exams Dashboard
+
+<img width="1440" height="900" alt="image" src="https://github.com/user-attachments/assets/f2a12a8b-e480-4698-8f1c-2280d03a8506" />
+
+#### Exam Creation
+
+<img width="1440" height="900" alt="image" src="https://github.com/user-attachments/assets/7531162a-85d9-485d-9802-8337102b68e6" />
 
 ### Examination
 
-> **TODO:** Add student examination screenshot.
+#### Student Taking an Exam
+
+<img width="1440" height="900" alt="image" src="https://github.com/user-attachments/assets/baf762f3-fc88-4e24-90ae-7ce694e3c5ba" />
 
 ### Results
 
-> **TODO:** Add examination results screenshot.
+#### Teacher Evaluates the Exam
+
+<img width="1440" height="900" alt="image" src="https://github.com/user-attachments/assets/37377885-eed1-4834-b9f2-5a07b2a036fc" />
+
+>Open question needs an instructor's evaluation
+
+#### Student's Exam Results Page
+
+<img width="1440" height="900" alt="image" src="https://github.com/user-attachments/assets/3a48eeaf-9838-4037-88a5-61fa4a7de9a8" />
 
 ## Running the Application
 
